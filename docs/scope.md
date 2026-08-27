@@ -234,15 +234,15 @@ A patient can authenticate and see their current state.
 
 ## Build
 
-- [ ] Clerk authentication
-- [ ] Patient role
-- [ ] Patient profile
-- [ ] Patient dashboard shell
-- [ ] Current visit card
-- [ ] Intake status
-- [ ] Document section
-- [ ] Previous history section
-- [ ] Accessible navigation
+- [x] Clerk authentication
+- [x] Patient role
+- [x] Patient profile
+- [x] Patient dashboard shell
+- [x] Current visit card
+- [x] Intake status
+- [x] Document section
+- [x] Previous history section
+- [x] Accessible navigation
 
 ## Done when
 
