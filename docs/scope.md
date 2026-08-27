@@ -262,14 +262,14 @@ Make the first-time hospital experience usable without training.
 
 ## Build
 
-- [ ] Kiosk mode
-- [ ] Language selection
-- [ ] Large touch targets
-- [ ] Audio instructions
-- [ ] Consent explanation
-- [ ] Consent capture
-- [ ] Continue to intake
-- [ ] Session creation
+- [x] Kiosk welcome screen
+- [x] Language selection
+- [x] Spoken guidance
+- [x] Consent capture
+- [x] Patient identity confirmation
+- [x] Kiosk accessible shell
+- [x] Continue to intake
+- [x] Session creation
 
 ## Design principle
 
