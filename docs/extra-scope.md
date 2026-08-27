@@ -237,7 +237,7 @@ TRIGGER_SECRET_KEY=tr_dev_...
 # Implementation Phases
 
 * [x] **Phase 0 — Product Foundation**: Next.js, Drizzle schema, Clerk roles, base CSS/components.
-* [ ] **Phase 1 — Patient Identity & Dashboard**: Auth flow, metadata routing, dashboard layout.
+* [x] **Phase 1 — Patient Identity & Dashboard**: Auth flow, metadata routing, dashboard layout.
 * [ ] **Phase 2 — Kiosk Entry & Consent**: Touch interface, audio guidance, consent logging.
 * [ ] **Phase 3 — Adaptive Clinical Intake**: AssemblyAI voice input, Puter.js/Gemini adaptive state, Google TTS output.
 * [ ] **Phase 4 — Review & Submit**: Patient verification UI & DB status transition.
