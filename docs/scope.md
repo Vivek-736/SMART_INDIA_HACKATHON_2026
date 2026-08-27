@@ -175,19 +175,19 @@ Create the application foundation without building a fake AI demo.
 
 ## Build
 
-- [ ] Create Next.js App Router project
-- [ ] TypeScript strictness
-- [ ] Tailwind
-- [ ] shadcn/ui
-- [ ] Clerk
-- [ ] Neon
-- [ ] Drizzle
-- [ ] UploadThing
-- [ ] Zod
-- [ ] base environment validation
-- [ ] feature-based folder structure
-- [ ] accessibility baseline
-- [ ] error-handling conventions
+- [x] Create Next.js App Router project
+- [x] TypeScript strictness
+- [x] Tailwind
+- [x] shadcn/ui
+- [x] Clerk
+- [x] Neon
+- [x] Drizzle
+- [x] UploadThing
+- [x] Zod
+- [x] base environment validation
+- [x] feature-based folder structure
+- [x] accessibility baseline
+- [x] error-handling conventions
 
 ## Data foundation
 
