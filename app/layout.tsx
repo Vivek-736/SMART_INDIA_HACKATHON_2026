@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { Roboto_Condensed } from "next/font/google";
 import "./globals.css";
+import { ClerkProvider } from "@clerk/nextjs";
+import { shadcn } from "@clerk/ui/themes";
+import { cn } from "@/lib/utils";
 
 const roboto_Condensed = Roboto_Condensed({
   subsets: ["latin"],
   weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+  style: ["italic", "normal"],
   variable: '--font-roboto-condensed',
 });
 
@@ -19,14 +22,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html
-      lang="en"
-      className={`${roboto_Condensed.className} h-full antialiased`}
-      suppressHydrationWarning
+    <ClerkProvider
+      appearance={{
+        layout: {
+          unsafe_disableDevelopmentModeWarnings: true,
+        },
+        theme: shadcn
+      }}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
-      </body>
-    </html>
+      <html
+        lang="en"
+        className={cn("h-full", "antialiased", roboto_Condensed.className,)}
+        suppressHydrationWarning
+      >
+        <body className="min-h-full flex flex-col">
+          {children}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
