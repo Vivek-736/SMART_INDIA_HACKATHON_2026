@@ -8,6 +8,8 @@ const isPublicRoute = createRouteMatcher([
   "/doctor/login(.*)",
   "/hospital/login(.*)",
   "/api/uploadthing(.*)",
+  "/api/speech(.*)",
+  "/kiosk(.*)",
 ]);
 
 // Role-protected routes

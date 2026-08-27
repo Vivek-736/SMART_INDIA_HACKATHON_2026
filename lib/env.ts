@@ -19,7 +19,8 @@ const envSchema = z.object({
   // Speech-to-Text
   ASSEMBLYAI_API_KEY: z.string().optional(),
 
-  // Google Cloud TTS
+  // Google Cloud TTS / Speech API Key
+  GOOGLE_CLOUD_API_KEY: z.string().optional(),
   GOOGLE_APPLICATION_CREDENTIALS_JSON: z.string().optional(),
   GOOGLE_CLOUD_PROJECT_ID: z.string().optional(),
   GOOGLE_CLOUD_CLIENT_EMAIL: z.string().optional(),
@@ -39,6 +40,7 @@ export const env = envSchema.parse({
   UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
   UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
   ASSEMBLYAI_API_KEY: process.env.ASSEMBLYAI_API_KEY,
+  GOOGLE_CLOUD_API_KEY: process.env.GOOGLE_CLOUD_API_KEY,
   GOOGLE_APPLICATION_CREDENTIALS_JSON: process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON,
   GOOGLE_CLOUD_PROJECT_ID: process.env.GOOGLE_CLOUD_PROJECT_ID,
   GOOGLE_CLOUD_CLIENT_EMAIL: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
