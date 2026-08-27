@@ -128,6 +128,8 @@ body {
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.15) transparent;
   }
   body {
     @apply bg-background text-foreground;
@@ -135,4 +137,30 @@ body {
   html {
     @apply font-sans;
   }
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.15);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.35);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.4);
 }
