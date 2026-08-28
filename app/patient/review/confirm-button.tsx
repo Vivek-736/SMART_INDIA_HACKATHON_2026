@@ -25,7 +25,7 @@ export default function ConfirmReviewButton({ visitId, sessionId }: ConfirmRevie
   const handleConfirm = () => {
     setError(null);
     startTransition(async () => {
-      const result = await confirmReviewAction(visitId);
+      const result = await confirmReviewAction(visitId, sessionId);
       if (result.success) {
         router.push(`/patient/documents?visit=${visitId}&session=${sessionId}`);
       } else {

@@ -243,7 +243,7 @@ TRIGGER_SECRET_KEY=tr_dev_...
 * [x] **Phase 4 — Review & Submit**: Patient verification UI & DB status transition.
 * [x] **Phase 5 — Document Upload**: UploadThing integration, file metadata, patient document list & skip flow.
 * [x] **Phase 6 — Document Intelligence**: Trigger.dev + Gemini Vision parsing to Drizzle DB timeline entries.
-* [ ] **Phase 7 — Async Finalization Pipeline**: Trigger.dev aggregation job (summary + red flag evaluation).
+* [x] **Phase 7 — Async Finalization Pipeline**: Trigger.dev aggregation job (summary + red flag evaluation).
 * [ ] **Phase 8 to 11 — Doctor Experience**: Queue view, summary view, document viewer, treatment entry.
 * [ ] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables.
 * [ ] **Phase 13 — Hospital Operations**: Recharts overview of OPD volume and turnaround.

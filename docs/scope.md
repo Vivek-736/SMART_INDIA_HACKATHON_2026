@@ -551,14 +551,14 @@ Mark visit READY_FOR_DOCTOR
 
 ## Build
 
-- [ ] Trigger.dev project
-- [ ] Submission trigger
-- [ ] Conversation processing task
-- [ ] Document processing task
-- [ ] Timeline task
-- [ ] Summary task
-- [ ] Failure/retry handling
-- [ ] Final visit status
+- [x] Trigger.dev project
+- [x] Submission trigger
+- [x] Conversation processing task
+- [x] Document processing task
+- [x] Timeline task
+- [x] Summary task
+- [x] Failure/retry handling
+- [x] Final visit status
 
 ---
 
