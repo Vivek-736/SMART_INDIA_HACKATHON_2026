@@ -30,6 +30,7 @@ import {
   CheckCircle2,
   Calendar,
   FileSignature,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PrescriptionAudioPlayer from "@/components/patient/prescription-audio-player";
@@ -248,6 +249,18 @@ export default async function PatientDashboardPage() {
                           {attendingDoctorRoom} &bull; Consulted on {new Date(completedDoctorReview.createdAt).toLocaleDateString()}
                         </p>
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`/api/fhir/export?visitId=${latestVisit.id}`}
+                        download
+                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-emerald-300 text-emerald-900 font-bold text-xs shadow-2xs hover:bg-emerald-50 transition-colors cursor-pointer"
+                        title="Download standard ABDM FHIR R4 interoperable health record"
+                      >
+                        <Download className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Download ABDM / FHIR Record</span>
+                      </a>
                     </div>
                   </div>
 
@@ -521,7 +534,6 @@ export default async function PatientDashboardPage() {
                   </Link>
                 </div>
               </div>
-
               {/* Past History Snippet */}
               <div className="bg-card border border-border rounded-3xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">

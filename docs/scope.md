@@ -748,11 +748,12 @@ Demonstrate interoperability without attempting to recreate ABDM.
 
 ## Build
 
-- [ ] Consent model
-- [ ] ABHA identifier handling where permitted by the demo environment
-- [ ] FHIR-compatible clinical structure
-- [ ] Demonstration export/integration boundary
-- [ ] Clear audit trail
+- [x] Consent model
+- [x] ABHA identifier handling & QR demographic binding
+- [x] FHIR-compatible clinical structure (`Composition`, `Patient`, `Condition`, `MedicationRequest`, `Practitioner`)
+- [x] Demonstration export/integration boundary (`/api/fhir/export?visitId=...`)
+- [x] 1-Click download buttons on Patient Dashboard & Doctor Clinical View
+- [x] Clear audit trail
 
 Treat real ABDM integration as an integration surface, not the core application.
 
