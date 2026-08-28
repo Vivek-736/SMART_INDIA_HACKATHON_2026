@@ -725,12 +725,14 @@ are reused.
 
 ## Build
 
-- [ ] Today's patient count
-- [ ] Intake completion count
-- [ ] Waiting count
-- [ ] Priority count
-- [ ] Kiosk online/offline status
-- [ ] Basic throughput view
+- [x] Today's patient count
+- [x] Intake completion count
+- [x] Waiting count
+- [x] Priority count
+- [x] Kiosk online/offline status
+- [x] Basic throughput view (Hourly arrival vs completion curves with Recharts)
+- [x] Patient demographics & Age distribution
+- [x] Department volume split (General Medicine vs AYUSH Ayurveda)
 
 No full hospital ERP.
 
