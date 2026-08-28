@@ -28,6 +28,10 @@ const envSchema = z.object({
 
   // AI & Extraction
   GEMINI_API_KEY: z.string().optional(),
+  PUTER_AUTH_TOKEN: z.string().optional(),
+  PUTER_TOKEN: z.string().optional(),
+  PUTER_API_KEY: z.string().optional(),
+  NEXT_PUBLIC_PUTER_AUTH_TOKEN: z.string().optional(),
   NEXT_PUBLIC_PUTER_APP_ID: z.string().optional(),
 });
 
@@ -46,5 +50,9 @@ export const env = envSchema.parse({
   GOOGLE_CLOUD_CLIENT_EMAIL: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
   GOOGLE_CLOUD_PRIVATE_KEY: process.env.GOOGLE_CLOUD_PRIVATE_KEY,
   GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  PUTER_AUTH_TOKEN: process.env.PUTER_AUTH_TOKEN,
+  PUTER_TOKEN: process.env.PUTER_TOKEN,
+  PUTER_API_KEY: process.env.PUTER_API_KEY,
+  NEXT_PUBLIC_PUTER_AUTH_TOKEN: process.env.NEXT_PUBLIC_PUTER_AUTH_TOKEN,
   NEXT_PUBLIC_PUTER_APP_ID: process.env.NEXT_PUBLIC_PUTER_APP_ID,
 });
