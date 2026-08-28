@@ -151,7 +151,7 @@ export default function ConsentScreen({ ageRequired }: { ageRequired: boolean })
         });
 
         if (res.success) {
-          router.push(`/patient/interview?session=${res.sessionId}&visit=${res.visitId}`);
+          router.push(`/patient/interview?session=${res.sessionId}&visit=${res.visitId}&lang=${res.language}&dept=${encodeURIComponent(res.department)}`);
         }
       } catch (err) {
         console.error("Consent error:", err);
