@@ -246,4 +246,4 @@ TRIGGER_SECRET_KEY=tr_dev_...
 * [x] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables (Prakriti, Agni, Ahara-Vihara, Pathya-Apathya).
 * [x] **Phase 13 — Hospital Operations & Dashboard**: `/hospital/dashboard` Recharts overview of OPD volume, hourly throughput, department distribution, age trends, and kiosk health.
 * [x] **Phase 14 — Interoperability & ABDM/FHIR R4 Export**: `/api/fhir/export` standard FHIR R4 Bundle generation with 1-click downloads for patients and doctors.
-* [ ] **Phase 15 — Security & Hardening**: Zod boundaries, role check verification, error boundary sanitization, and production build verification.
+* [x] **Phase 15 — Security & Hardening**: Zod boundaries, role check verification, error boundary sanitization, and production build verification.

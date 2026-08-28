@@ -90,8 +90,10 @@ function fallbackClinicalParser(section: InterviewSection, answer: string): Extr
     structured.pastConditions = answer;
   } else if (section === "MEDICATIONS_ALLERGIES") {
     structured.medicationsAndAllergies = answer;
-  } else if (section === "AYUSH_EVALUATION") {
-    structured.ayushDetails = answer;
+  } else if (section === "AYUSH_AGNI_DIGESTION") {
+    structured.ayushAgni = answer;
+  } else if (section === "AYUSH_AHARA_PRAKRITI") {
+    structured.ayushPrakriti = answer;
   }
 
   return {
