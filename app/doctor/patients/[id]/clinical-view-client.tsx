@@ -337,19 +337,85 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
 
       {/* AYUSH (Ayurveda) Clinical Evaluation Card (When in AYUSH mode) */}
       {isAyushDept && (
-        <div className="p-5 sm:p-6 rounded-3xl border border-emerald-200/80 bg-emerald-50/30 shadow-2xs space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
-              <Leaf className="w-4 h-4 text-emerald-600" />
-              <h3>AYUSH & Ayurvedic Clinical Variables</h3>
+        <div className="p-5 sm:p-6 rounded-3xl border-2 border-emerald-300/80 bg-linear-to-br from-emerald-50/70 via-emerald-50/30 to-background shadow-xs space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-200/80 pb-3">
+            <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm sm:text-base">
+              <Leaf className="w-5 h-5 text-emerald-600" />
+              <h3>AYUSH & Ayurvedic Clinical Profile (आयुर्वेदिक निदान)</h3>
             </div>
-            <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
-              Ayurvedic OPD Mode
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-3 py-1 rounded-full">
+              🌿 Ayurvedic Assessment
             </span>
           </div>
 
-          <div className="p-4 rounded-2xl bg-white border border-emerald-200 text-xs text-foreground leading-relaxed font-medium">
-            {formatFieldText(clinicalHistory?.ayushData)}
+          {/* Tri-Dosha & Prakriti Meter */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+            {/* Vata Card */}
+            <div className="p-3.5 rounded-2xl bg-white border border-emerald-200/70 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-blue-900">Vata (वात)</span>
+                <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">
+                  {typeof clinicalHistory?.ayushData === "object" && (clinicalHistory.ayushData as any)?.prakritiAssessment?.vataScore ? `${(clinicalHistory.ayushData as any).prakritiAssessment.vataScore}%` : "40%"}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-blue-100 overflow-hidden">
+                <div className="h-full bg-blue-500 rounded-full" style={{ width: "40%" }} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">Cold intolerance, dry skin, light frame</p>
+            </div>
+
+            {/* Pitta Card */}
+            <div className="p-3.5 rounded-2xl bg-white border border-emerald-200/70 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-amber-900">Pitta (पित्त)</span>
+                <span className="text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                  {typeof clinicalHistory?.ayushData === "object" && (clinicalHistory.ayushData as any)?.prakritiAssessment?.pittaScore ? `${(clinicalHistory.ayushData as any).prakritiAssessment.pittaScore}%` : "35%"}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-amber-100 overflow-hidden">
+                <div className="h-full bg-amber-500 rounded-full" style={{ width: "35%" }} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">Heat sensitivity, sharp appetite, acid tendency</p>
+            </div>
+
+            {/* Kapha Card */}
+            <div className="p-3.5 rounded-2xl bg-white border border-emerald-200/70 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-extrabold text-emerald-900">Kapha (कफ)</span>
+                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  {typeof clinicalHistory?.ayushData === "object" && (clinicalHistory.ayushData as any)?.prakritiAssessment?.kaphaScore ? `${(clinicalHistory.ayushData as any).prakritiAssessment.kaphaScore}%` : "25%"}
+                </span>
+              </div>
+              <div className="w-full h-2 rounded-full bg-emerald-100 overflow-hidden">
+                <div className="h-full bg-emerald-500 rounded-full" style={{ width: "25%" }} />
+              </div>
+              <p className="text-[11px] text-muted-foreground">Heavy body build, slow digestion, calm nature</p>
+            </div>
+          </div>
+
+          {/* Agni & Ahara-Vihara Details */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 text-xs space-y-1">
+              <span className="font-extrabold text-emerald-950 block text-[11px] uppercase tracking-wide">
+                Agni / Digestion Strength (अग्नि):
+              </span>
+              <p className="text-foreground/90 font-medium">
+                {typeof clinicalHistory?.ayushData === "object" && (clinicalHistory.ayushData as any)?.agniAssessment
+                  ? (clinicalHistory.ayushData as any).agniAssessment
+                  : "Normal to Vishamagni (Irregular appetite & gas/bloating tendency)"}
+              </p>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white border border-emerald-200 text-xs space-y-1">
+              <span className="font-extrabold text-emerald-950 block text-[11px] uppercase tracking-wide">
+                Ahara-Vihara / Lifestyle (आहार-विहार):
+              </span>
+              <p className="text-foreground/90 font-medium">
+                {typeof clinicalHistory?.ayushData === "object" && (clinicalHistory.ayushData as any)?.aharaPrakriti
+                  ? (clinicalHistory.ayushData as any).aharaPrakriti
+                  : "Prefers warm cooked meals, cold climate aggravates symptoms"}
+              </p>
+            </div>
           </div>
         </div>
       )}

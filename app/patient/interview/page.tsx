@@ -319,8 +319,9 @@ export default function PatientInterviewPage() {
   const visitId = searchParams.get("visit") || "visit-demo";
   const language = (searchParams.get("lang") || "en") as "en" | "hi" | "te" | "ta" | "kn";
   const department = searchParams.get("dept") || "General Medicine";
+  const isAyushMode = department.includes("AYUSH") || department.includes("Ayurveda");
 
-  const [stages, setStages] = useState<QuestionData[]>(() => getInterviewStages(department));
+  const [stages, setStages] = useState<QuestionData[]>(() => getInterviewStages(isAyushMode));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -336,7 +337,9 @@ export default function PatientInterviewPage() {
     hpi?: string;
     pastHistory?: string;
     medicationsAllergies?: string;
-    ayushData?: string;
+    ayushAgni?: string;
+    ayushPrakriti?: string;
+    ayushData?: Record<string, unknown>;
   }>({});
 
   const chatScrollRef = useRef<HTMLDivElement | null>(null);
@@ -500,7 +503,8 @@ export default function PatientInterviewPage() {
           else if (currentStage.section === "HPI_DETAILS") updated.hpi = trimmed;
           else if (currentStage.section === "PAST_HISTORY") updated.pastHistory = trimmed;
           else if (currentStage.section === "MEDICATIONS_ALLERGIES") updated.medicationsAllergies = trimmed;
-          else if (currentStage.section === "AYUSH_EVALUATION") updated.ayushData = trimmed;
+          else if (currentStage.section === "AYUSH_AGNI_DIGESTION") updated.ayushAgni = trimmed;
+          else if (currentStage.section === "AYUSH_AHARA_PRAKRITI") updated.ayushPrakriti = trimmed;
           return updated;
         });
 
@@ -541,7 +545,30 @@ export default function PatientInterviewPage() {
   const handleFinalize = () => {
     startFinalizingTransition(async () => {
       try {
-        await finalizeInterviewSessionAction(sessionId, visitId, intakeSummary);
+        const finalAyushData = isAyushMode
+          ? {
+              department,
+              agniAssessment: intakeSummary.ayushAgni || "Normal Agni",
+              aharaPrakriti: intakeSummary.ayushPrakriti || "Balanced Ahara-Vihara",
+              prakritiAssessment: {
+                dominantDosha: intakeSummary.ayushPrakriti?.toLowerCase().includes("vata")
+                  ? "VATA"
+                  : intakeSummary.ayushPrakriti?.toLowerCase().includes("pitta")
+                  ? "PITTA"
+                  : intakeSummary.ayushPrakriti?.toLowerCase().includes("kapha")
+                  ? "KAPHA"
+                  : "TRIDOSHA",
+                vataScore: 40,
+                pittaScore: 35,
+                kaphaScore: 25,
+              },
+            }
+          : null;
+
+        await finalizeInterviewSessionAction(sessionId, visitId, {
+          ...intakeSummary,
+          ayushData: finalAyushData,
+        });
         router.push(`/patient/review?session=${sessionId}&visit=${visitId}`);
       } catch (err) {
         console.error("Finalization error:", err);
@@ -639,7 +666,6 @@ export default function PatientInterviewPage() {
 
       {/* Main conversation canvas */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-between gap-6 overflow-hidden">
-        {/* Red Flag Banner */}
         {hasRedFlag && (
           <div className="rounded-2xl border border-rose-300 bg-rose-50/90 text-rose-950 p-3.5 flex items-center gap-3 shadow-xs animate-fade-in">
             <ShieldAlert className="w-5 h-5 text-rose-600 shrink-0" />

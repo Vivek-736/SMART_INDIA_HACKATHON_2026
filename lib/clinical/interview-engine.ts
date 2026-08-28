@@ -3,7 +3,8 @@ export type InterviewSection =
   | "HPI_DETAILS"
   | "PAST_HISTORY"
   | "MEDICATIONS_ALLERGIES"
-  | "AYUSH_EVALUATION"
+  | "AYUSH_AGNI_DIGESTION"
+  | "AYUSH_AHARA_PRAKRITI"
   | "COMPLETED";
 
 export interface QuestionData {
@@ -98,35 +99,109 @@ export const GENERAL_INTERVIEW_STAGES: QuestionData[] = [
   },
 ];
 
-export const AYUSH_ADDITIONAL_STAGE: QuestionData = {
-  section: "AYUSH_EVALUATION",
-  title: "Ayurvedic Lifestyle & Prakriti",
-  stepNumber: 5,
-  totalSteps: 5,
-  question: {
-    en: "In Ayurveda: How is your digestion (Agni), appetite, sleep pattern, bowel habits, and daily energy levels?",
-    hi: "आयुर्वेद के अनुसार: आपकी पाचन शक्ति (अग्नि), भूख, नींद, पेट साफ होने की स्थिति और ऊर्जा का स्तर कैसा है?",
-    te: "ఆయుర్వేద విధానంలో: మీ జీర్ణశక్తి (అగ్ని), ఆకలి, నిద్ర, మల విసర్జన మరియు రోజూ శక్తి సామర్థ్యం ఎలా ఉన్నాయి?",
-    ta: "ஆயுர்வேத முறையில்: உங்கள் செரிமான சக்தி (அக்னி), பசி, தூக்கம் மற்றும் அன்றாட ஆற்றல் அளவு எப்படி உள்ளது?",
-    kn: "ಆಯುರ್ವೇದದಲ್ಲಿ: ನಿಮ್ಮ ಜೀರ್ಣಕ್ರಿಯೆ (ಅಗ್ನಿ), ಹಸಿವು, ನಿದ್ರೆ ಮತ್ತು ದೈನಂದಿನ ಶಕ್ತಿಯ ಮಟ್ಟ ಹೇಗಿದೆ?",
+export const AYUSH_INTERVIEW_STAGES: QuestionData[] = [
+  {
+    section: "CHIEF_COMPLAINT",
+    title: "Chief Complaint (Pradhana Vedana)",
+    stepNumber: 1,
+    totalSteps: 5,
+    question: {
+      en: "What primary health concern, pain, or symptom brings you to the AYUSH Ayurvedic OPD today?",
+      hi: "आज आप आयुष (आयुर्वेद) ओपीडी में किस मुख्य स्वास्थ्य समस्या या लक्षण के लिए आए हैं?",
+      te: "ఈరోజు మీరు ఆయుష్ (ఆయుర్వేద) విభాగానికి ఏ ప్రధాన ఆరోగ్య సమస్య లేదా లక్షణం కోసం వచ్చారు?",
+      ta: "இன்று நீங்கள் ஆயுஷ் (ஆயுர்வேத) மருத்துவப் பிரிவிற்கு வரக் காரணமான முக்கிய பிரச்சனை என்ன?",
+      kn: "ಇಂದು ನೀವು ಆಯುಷ್ (ಆಯುರ್ವೇದ) ವಿಭಾಗಕ್ಕೆ ಭೇಟಿ ನೀಡಲು ಮುಖ್ಯ ಆರೋಗ್ಯ ಸಮಸ್ಯೆ ಯಾವುದು?",
+    },
+    suggestions: {
+      en: ["Chronic Joint Pain (Sandhivata)", "Acid Indigestion & Gas (Amlapitta)", "Recurrent Cough & Sinus (Kasa/Pratishyaya)", "Skin Allergy & Itching (Kandu)", "Fatigue & Low Energy (Dhatukshaya)", "Constipation & Piles (Arsha)"],
+      hi: ["जोड़ों का दर्द और अकड़न (संधिवात)", "खट्टी डकार और गैस (अम्लपित्त)", "पुरानी खांसी और कफ (कास)", "त्वचा में खुजली और रैशेज (कण्डू)", "कमजोरी और थकान", "कब्ज और गैस (कोष्ठबद्धता)"],
+      te: ["కీళ్ల నొప్పులు & వాపు (సంధివాతం)", "ఎసిడిటీ, గ్యాస్ & మంట (ఆమ్లపిత్తం)", "దీర్ఘకాలిక దగ్గు & రొంప (కాస)", "చర్మ దురద & ఎలర్జీ", "నీరసం & అలసట", "మలబద్ధకం & గ్యాస్"],
+      ta: ["மூட்டு வலி (சந்திவாதம்)", "அமிலத்தன்மை & வாயு (அமிலபித்தம்)", "தொடர் இருமல் & சளி", "தோல் அரிப்பு & ஒவ்வாமை", "உடல் சோர்வு", "மலச்சிக்கல் & வாயு"],
+      kn: ["ಕೀಲು ನೋವು & ಊತ (ಸಂಧಿವಾತ)", "ಆಮ್ಲೀಯತೆ & ಗ್ಯಾಸ್ (ಆಮ್ಲಪಿತ್ತ)", "ದೀರ್ಘಕಾಲದ ಕೆಮ್ಮು & ನೆಗಡಿ", "ಚರ್ಮದ ತುರಿಕೆ & ಅಲರ್ಜಿ", "ವಿಪರೀತ ಆಯಾಸ", "ಮಲಬದ್ಧತೆ & ಗ್ಯಾಸ್"],
+    },
   },
-  suggestions: {
-    en: ["Normal digestion & good sleep", "Weak digestion / Gas & Acidity (Manda Agni)", "Irregular appetite & restless sleep", "Constipation / Hard stools", "High appetite / Burning sensation (Tikshna Agni)"],
-    hi: ["सामान्य पाचन और अच्छी नींद", "कमजोर पाचन / गैस और एसिडिटी (मंदाग्नि)", "अनियमित भूख और बेचैन नींद", "कब्ज की समस्या", "अधिक भूख / पेट में जलन (तीक्ष्णाग्नि)"],
-    te: ["సాధారణ జీర్ణక్రియ & మంచి నిద్ర", "బలహీన జీర్ణక్రియ / గ్యాస్ & ఎసిడిటీ (మంద అగ్ని)", "సక్రమంగా లేని ఆకలి & నిద్రలేమి", "మలబద్ధకం సమస్య", "అధిక ఆకలి / కడుపులో మంట (తీక్షణ అగ్ని)"],
-    ta: ["இயல்பான செரிமானம் & நல்ல தூக்கம்", "மந்தமான செரிமானம் / வாய்வு & அமிலத்தன்மை", "முறையற்ற பசி & தூக்கமின்மை", "மலச்சிக்கல் பிரச்சனை", "அதிக பசி / நெஞ்செரிச்சல்"],
-    kn: ["ಸಾಮಾನ್ಯ ಜೀರ್ಣಕ್ರಿಯೆ & ಉತ್ತಮ ನಿದ್ರೆ", "ದುರ್ಬಲ ಜೀರ್ಣಕ್ರಿಯೆ / ಗ್ಯಾಸ್ & ಅಸಿಡಿಟಿ", "ಅನಿಯಮಿತ ಹಸಿವು & ನಿದ್ರಾಹೀನತೆ", "ಮಲಬದ್ಧತೆ", "ಅತಿಯಾದ ಹಸಿವು / ಹೊಟ್ಟೆ ಉರಿ"],
+  {
+    section: "HPI_DETAILS",
+    title: "Symptom Timeline & Triggers",
+    stepNumber: 2,
+    totalSteps: 5,
+    question: {
+      en: "How long have you had this concern, and what makes it worse (e.g. cold food, stress, morning/evening, physical exertion)?",
+      hi: "यह समस्या कितने समय से है, और किस चीज से बढ़ जाती है (जैसे ठंडा खाना, तनाव, सुबह/शाम, या मेहनत करने पर)?",
+      te: "ఈ సమస్య ఎన్ని రోజులుగా ఉంది, మరియు దేనివల్ల పెరుగుతుంది (చల్లని ఆహారం, ఒత్తిడి, ఉదయం/రాత్రి, శ్రమ వల్ల)?",
+      ta: "இந்த பிரச்சனை எத்தனை நாட்களாக உள்ளது, எதனால் கூடுகிறது (குளிர்ந்த உணவு, மன அழுத்தம், காலை/இரவு)?",
+      kn: "ಈ ಸಮಸ್ಯೆ ಎಷ್ಟು ದಿನಗಳಿಂದ ಇದೆ, ಮತ್ತು ಯಾವುದರಿಂದ ಹೆಚ್ಚಾಗುತ್ತದೆ (ತಂಪು ಆಹಾರ, ಮಾನಸಿಕ ಒತ್ತಡ, ಬೆಳಿಗ್ಗೆ/ರಾತ್ರಿ)?",
+    },
+    suggestions: {
+      en: ["Aggravated by cold food/weather", "Worse after spicy/oily meals", "Severe in the early morning", "Increases with mental stress", "Better after warm drinks/rest", "Constant since several weeks"],
+      hi: ["ठंडे भोजन या मौसम से बढ़ता है", "मसालेदार/तले खाने के बाद बढ़ता है", "सुबह के समय ज्यादा होता है", "मानसिक तनाव से बढ़ता है", "गर्म पानी/आराम से घटता है", "कई हफ्तों से लगातार है"],
+      te: ["చల్లని పదార్థాలు/వాతావరణంతో పెరుగుతుంది", "కారం/నూనె తింటే పెరుగుతుంది", "ఉదయపు వేళల్లో ఎక్కువ", "ఒత్తిడి ఉన్నప్పుడు పెరుగుతుంది", "వేడి నీరు/విశ్రాంతితో తగ్గుతుంది", "కొన్ని వారాలుగా నిరంతరం ఉంది"],
+      ta: ["குளிர்ந்த உணவால் கூடுகிறது", "காரமான உணவால் கூடுகிறது", "காலை வேளையில் அதிகம்", "மன அழுத்தத்தால் கூடுகிறது", "சூடான பானங்களால் குறைகிறது", "பல வாரங்களாக உள்ளது"],
+      kn: ["ತಂಪು ಆಹಾರದಿಂದ ಹೆಚ್ಚಾಗುತ್ತದೆ", "ಖಾರ/ಎಣ್ಣೆಯುಕ್ತ ಆಹಾರದಿಂದ ಹೆಚ್ಚಾಗುತ್ತದೆ", "ಬೆಳಗಿನ ಜಾವದಲ್ಲಿ ಹೆಚ್ಚು", "ಒತ್ತಡದಿಂದ ಹೆಚ್ಚಾಗುತ್ತದೆ", "ಬಿಸಿ ನೀರಿನಿಂದ ಕಡಿಮೆಯಾಗುತ್ತದೆ", "ಹಲವು ವಾರಗಳಿಂದ ಇದೆ"],
+    },
   },
-};
+  {
+    section: "AYUSH_AGNI_DIGESTION",
+    title: "Agni & Digestive Assessment",
+    stepNumber: 3,
+    totalSteps: 5,
+    question: {
+      en: "How is your appetite, digestion, and bowel habit? (e.g. normal, slow digestion/heaviness, hyperacidity/burning, or irregular/bloated)",
+      hi: "आपकी भूख, पाचन और पेट साफ होने की स्थिति कैसी है? (जैसे सामान्य, भारीपन/मंदाग्नि, जलन/तीक्ष्णाग्नि, या गैस/अनियमित भूख)",
+      te: "మీ ఆకలి, జీర్ణక్రియ మరియు విసర్జన ఎలా ఉన్నాయి? (సాధారణం, తిన్న తర్వాత బరువుగా, కడుపులో మంట, లేదా గ్యాస్/మలబద్ధకం)",
+      ta: "உங்கள் பசி, செரிமானம் மற்றும் குடல் இயக்கம் எப்படி உள்ளது? (சாதாரணம், செரிமான மந்தம், நெஞ்செரிச்சல், அல்லது மலச்சிக்கல்)",
+      kn: "ನಿಮ್ಮ ಹಸಿವು, ಜೀರ್ಣಕ್ರಿಯೆ ಮತ್ತು ಮಲವಿಸರ್ಜನೆ ಹೇಗಿದೆ? (ಸಾಮಾನ್ಯ, ತಿಂದ ನಂತರ ಹೊಟ್ಟೆ ಭಾರ, ಉರಿ/ಆಮ್ಲೀಯತೆ, ಅಥವಾ ಗ್ಯಾಸ್/ಮಲಬದ್ಧತೆ)",
+    },
+    suggestions: {
+      en: ["Good appetite & regular bowels (Samagni)", "Slow digestion & heaviness after food (Mandagni)", "Intense hunger with acid burning (Tikshnagni)", "Irregular appetite & gas/bloating (Vishamagni)", "Frequent loose stools (Mridu Koshtha)", "Chronic constipation & hard stool (Krura Koshtha)"],
+      hi: ["अच्छी भूख और नियमित पाचन (समाग्नि)", "खाना देर से पचना व भारीपन (मंदाग्नि)", "तेज भूख और खट्टी डकार/जलन (तीक्ष्णाग्नि)", "अनियमित भूख और गैस/पेट फूलना (विषमाग्नि)", "बार-बार दस्त/पतला पेट (मृदु कोष्ठ)", "कब्ज और सख्त मल (क्रूर कोष्ठ)"],
+      te: ["మంచి ఆకలి & సక్రమ జీర్ణక్రియ (సమాగ్ని)", "ఆలస్యంగా జీర్ణం కావడం & బరువు (మందాగ్ని)", "తీవ్రమైన ఆకలి & ఎసిడిటీ (తీక్ష్ణాగ్ని)", "అనియమిత ఆకలి & కడుపుబ్బరం (విషమాగ్ని)", "తరచుగా విరేచనాలు (మృదు కోష్ఠం)", "మలబద్ధకం (క్రూర కోష్ఠం)"],
+      ta: ["நல்ல பசி & சீரான செரிமானம்", "மெதுவான செரிமானம் & மந்தம்", "அதிக பசி & நெஞ்செரிச்சல்", "ஒழுங்கற்ற பசி & வாயு", "அடிக்கடி பேதி", "மலச்சிக்கல்"],
+      kn: ["ಉತ್ತಮ ಹಸಿವು & ನಿಯಮಿತ ಜೀರ್ಣಕ್ರಿಯೆ", "ನಿಧಾನ ಜೀರ್ಣಕ್ರಿಯೆ & ಹೊಟ್ಟೆ ಭಾರ", "ತೀವ್ರ ಹಸಿವು & ಎದೆಯುರಿ", "ಅನಿಯಮಿತ ಹಸಿವು & ಗ್ಯಾಸ್", "ಆಗಾಗ್ಗೆ ಭೇದಿ", "ಮಲಬದ್ಧತೆ"],
+    },
+  },
+  {
+    section: "AYUSH_AHARA_PRAKRITI",
+    title: "Ahara-Vihara & Prakriti Traits",
+    stepNumber: 4,
+    totalSteps: 5,
+    question: {
+      en: "What are your diet/sleep habits, and do you feel more intolerant to cold weather or summer heat?",
+      hi: "आपकी खान-पान और नींद की आदतें कैसी हैं, और क्या आपको ठंड ज्यादा परेशान करती है या गर्मी?",
+      te: "మీ ఆహార మరియు నిద్ర అలవాట్లు ఎలా ఉన్నాయి? మీకు చలి ఎక్కువ ఇబ్బంది కలిగిస్తుందా లేదా వేడి ఇబ్బంది కలిగిస్తుందా?",
+      ta: "உங்கள் உணவு மற்றும் தூக்கப் பழக்கம் எப்படி உள்ளது? உங்களுக்கு குளிர் ஒவ்வாதா அல்லது வெப்பம் ஒவ்வாதா?",
+      kn: "ನಿಮ್ಮ ಆಹಾರ ಮತ್ತು ನಿದ್ರೆಯ ಅಭ್ಯಾಸ ಹೇಗಿದೆ? ನಿಮಗೆ ಚಳಿ ಹೆಚ್ಚು ತೊಂದರೆ ಕೊಡುತ್ತದೆಯೇ ಅಥವಾ ಸೆಕೆ ಹೆಚ್ಚು ತೊಂದರೆ ಕೊಡುತ್ತದೆಯೇ?",
+    },
+    suggestions: {
+      en: ["Intolerant to cold & dry skin (Vata)", "Intolerant to heat & excessive sweat (Pitta)", "Heavy build & calm/sleepy (Kapha)", "Disturbed sleep & high mental stress", "Sound deep sleep every night", "Irregular meal timings & spicy diet"],
+      hi: ["ठंड ज्यादा लगती है व सूखी त्वचा (वात)", "गर्मी ज्यादा लगती है व पसीना अधिक (पित्त)", "भारी शरीर व गहरी नींद (कफ)", "टूटी-फूटी नींद व मानसिक तनाव", "गहरी और अच्छी नींद", "अनियमित भोजन व तीखा-तला खानपान"],
+      te: ["చలి ఎక్కువ పడదు & పొడి చర్మం (వాతం)", "ఎండ/వేడి పడదు & ఎక్కువ చెమట (పిత్తం)", "బరువైన శరీరం & ఎక్కువ నిద్ర (కఫం)", "సరిగ్గా నిద్రపట్టకపోవడం & మానసిక ఒత్తిడి", "ప్రశాంతమైన నిద్ర", "సమయానికి తినకపోవడం & కారమైన ఆహారం"],
+      ta: ["குளிர் தாங்காது & வறண்ட தோல் (வாதம்)", "வெப்பம் தாங்காது & அதிக வியர்வை (பித்தம்)", "அதிக உடல் எடை & தூக்கம் (கபம்)", "குறைவான தூக்கம் & மன அழுத்தம்", "ஆழ்ந்த தூக்கம்", "காரமான உணவு பழக்கம்"],
+      kn: ["ಚಳಿ ತಡೆಯಲಾಗದು & ಒಣ ಚರ್ಮ (ವಾತ)", "ಸೆಕೆ ತಡೆಯಲಾಗದು & ಹೆಚ್ಚು ಬೆವರು (ಪಿತ್ತ)", "ಭಾರವಾದ ದೇಹ & ಹೆಚ್ಚು ನಿದ್ರೆ (ಕಫ)", "ಅಡಚಣೆಯುಳ್ಳ ನಿದ್ರೆ & ಒತ್ತಡ", "ಉತ್ತಮ ನಿದ್ರೆ", "ಅನಿಯಮಿತ ಆಹಾರ ಪದ್ಧತಿ"],
+    },
+  },
+  {
+    section: "MEDICATIONS_ALLERGIES",
+    title: "Current Medicines & Allergies",
+    stepNumber: 5,
+    totalSteps: 5,
+    question: {
+      en: "Are you taking any modern or Ayurvedic medicines currently, or do you have any allergies?",
+      hi: "क्या आप वर्तमान में कोई एलोपैथिक या आयुर्वेदिक दवा ले रहे हैं, या कोई एलर्जी है?",
+      te: "మీరు ప్రస్తుతం ఏవైనా ఇంగ్లీష్ లేదా ఆయుర్వేద మందులు వాడుతున్నారా, లేదా అలర్జీలు ఏమైనా ఉన్నాయా?",
+      ta: "நீங்கள் தற்போது ஏதேனும் அலோபதி அல்லது ஆயுர்வேத மருந்துகளை உட்கொள்கிறீர்களா, அல்லது ஒவ்வாமை உள்ளதா?",
+      kn: "ನೀವು ಪ್ರಸ್ತುತ ಯಾವುದೇ ಅಲೋಪತಿ ಅಥವಾ ಆಯುರ್ವೇದ ಔಷಧಿಗಳನ್ನು ತೆಗೆದುಕೊಳ್ಳುತ್ತಿದ್ದೀರಾ, ಅಥವಾ ಅಲರ್ಜಿ ಇದೆಯೇ?",
+    },
+    suggestions: {
+      en: ["No current medicines & No allergies", "Taking daily BP / Sugar medicines", "Taking Ayurvedic herbs/Kwathas regularly", "Allergic to Penicillin/Modern drugs", "Allergic to specific food items", "Taking Painkillers regularly"],
+      hi: ["कोई दवा नहीं और कोई एलर्जी नहीं", "बीपी / शुगर की नियमित दवाएं", "आयुर्वेदिक काढ़ा / जड़ी-बूटी ले रहे हैं", "एंटीबायोटिक से एलर्जी", "विशेष भोजन से एलर्जी", "दर्द निवारक गोलियां"],
+      te: ["ఎలాంటి మందులు & అలర్జీలు లేవు", "రోజువారీ బిపి / షుగర్ మందులు", "ఆయుర్వేద కషాయాలు/మందులు వాడుతున్నాం", "యాంటీబయాటిక్స్ అలర్జీ", "ఆహార అలర్జీలు", "నొప్పి నివారణ మందులు"],
+      ta: ["எந்த மருந்தும் இல்லை & ஒவ்வாமை இல்லை", "வழக்கமான BP / சர்க்கரை மருந்துகள்", "ஆயுர்வேத கஷாயம் / மருந்துகள்", "மருந்து ஒவ்வாமை", "உணவு ஒவ்வாமை", "வலி நிவாரணிகள்"],
+      kn: ["ಯಾವುದೇ ಔಷಧಿ ಇಲ್ಲ & ಅಲರ್ಜಿ ಇಲ್ಲ", "ದೈನಂದಿನ BP / ಶುಗರ್ ಔಷಧಿಗಳು", "ಆಯುರ್ವೇದ ಕಷಾಯ/ಔಷಧಿಗಳು", "ಔಷಧಿ ಅಲర్ಜಿ", "ಆಹಾರ ಅಲರ್ಜಿ", "ನೋವು ನಿವಾರಕಗಳು"],
+    },
+  },
+];
 
-export function getInterviewStages(department: string): QuestionData[] {
-  if (department.includes("AYUSH") || department.includes("Ayurveda")) {
-    const updatedStages = GENERAL_INTERVIEW_STAGES.map((stage) => ({
-      ...stage,
-      totalSteps: 5,
-    }));
-    return [...updatedStages, AYUSH_ADDITIONAL_STAGE];
-  }
-  
-  return GENERAL_INTERVIEW_STAGES;
+export function getInterviewStages(isAyushMode: boolean): QuestionData[] {
+  return isAyushMode ? AYUSH_INTERVIEW_STAGES : GENERAL_INTERVIEW_STAGES;
 }

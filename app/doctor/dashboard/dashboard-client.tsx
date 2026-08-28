@@ -72,7 +72,7 @@ export default function DoctorDashboardClient({
   ).length;
   const inConsultCount = queue.filter((q) => q.status === "IN_CONSULTATION").length;
   const urgentCount = queue.filter(
-    (q) => q.priority === "URGENT" || q.priority === "EMERGENCY" || q.redFlags.length > 0
+    (q) => q.status !== "COMPLETED" && (q.priority === "URGENT" || q.priority === "EMERGENCY" || q.redFlags.length > 0)
   ).length;
   const completedCount = queue.filter((q) => q.status === "COMPLETED").length;
 
@@ -82,6 +82,7 @@ export default function DoctorDashboardClient({
     if (statusFilter === "READY") {
       if (item.status !== "READY_FOR_DOCTOR" && item.status !== "WAITING") return false;
     } else if (statusFilter === "URGENT") {
+      if (item.status === "COMPLETED") return false;
       if (item.priority !== "URGENT" && item.priority !== "EMERGENCY" && item.redFlags.length === 0) return false;
     } else if (statusFilter === "ACTIVE") {
       if (item.status !== "IN_CONSULTATION") return false;
@@ -339,7 +340,9 @@ export default function DoctorDashboardClient({
               item.status === "IN_CONSULTATION" && item.attendingDoctor?.id === currentDoctorId;
             const isOtherDoctorHandling =
               item.status === "IN_CONSULTATION" && item.attendingDoctor && item.attendingDoctor.id !== currentDoctorId;
-            const isUrgent = item.priority === "URGENT" || item.priority === "EMERGENCY" || item.redFlags.length > 0;
+            const isUrgent =
+              item.status !== "COMPLETED" &&
+              (item.priority === "URGENT" || item.priority === "EMERGENCY" || item.redFlags.length > 0);
             const isStartingThis = startingVisitId === item.visitId;
 
             return (
@@ -419,8 +422,8 @@ export default function DoctorDashboardClient({
                       {item.chiefComplaint || item.summaryText || "Intake in progress"}
                     </p>
 
-                    {/* Red Flag Alerts Banner */}
-                    {item.redFlags.length > 0 && (
+                    {/* Red Flag Alerts Banner (Only for active visits) */}
+                    {item.status !== "COMPLETED" && item.redFlags.length > 0 && (
                       <div className="p-2 rounded-xl bg-rose-50/80 border border-rose-200 text-[11px] text-rose-900 flex items-center gap-1.5 font-medium">
                         <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
                         <span className="truncate">

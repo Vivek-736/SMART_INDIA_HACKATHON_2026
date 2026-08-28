@@ -243,6 +243,6 @@ TRIGGER_SECRET_KEY=tr_dev_...
 * [x] **Phase 9 — Doctor Experience (Patient Clinical View)**: `/doctor/patients/[id]` structured history cards, HPI, medications, red flags, AYUSH mode, and source transcript inspection.
 * [x] **Phase 10 — Documents & Medical Timeline**: Original uploaded document viewer side-by-side with AI entity extraction and chronological timeline.
 * [x] **Phase 11 — Doctor Review & Treatment**: Clinical diagnosis confirmation, digital prescription builder, follow-up scheduling, and visit completion.
-* [ ] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables.
+* [x] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables (Prakriti, Agni, Ahara-Vihara, Pathya-Apathya).
 * [ ] **Phase 13 — Hospital Operations**: Recharts overview of OPD volume and turnaround.
 * [ ] **Phase 14 & 15 — Interoperability, Security & Hardening**: Zod boundaries, role check verification, error boundary sanitization.

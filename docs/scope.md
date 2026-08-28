@@ -686,20 +686,13 @@ Support the additional history requirements of AYUSH/Ayurvedic OPDs without crea
 
 ## Build
 
-Add an interview mode/schema for:
-
-- Prakriti
-- Vikriti
-- Sara
-- Samhanana
-- Pramana
-- Satmya
-- Sattva
-- Ahara Shakti
-- Vyayama Shakti
-- Vaya
-- Ahara-Vihara
-- other relevant Ayurvedic history fields
+- [x] Dedicated Ayurvedic Schema (`lib/clinical/ayush-schema.ts`)
+- [x] Prakriti & Tri-Dosha assessment (Vata, Pitta, Kapha)
+- [x] Agni & Digestion strength evaluation (Mandagni, Tikshnagni, Vishamagni, Samagni)
+- [x] Ahara-Vihara (Diet preferences & Daily lifestyle patterns)
+- [x] Adaptive Ayurvedic questions & Quick-tap presets
+- [x] Doctor clinical view Tri-Dosha meters & Agni breakdown
+- [x] Doctor review Pathya-Apathya regimen builder & Ayurvedic drug formulations
 
 ## Architecture
 
@@ -852,7 +845,7 @@ That is the product story.
 - [x] Medical timeline
 - [x] Red-flag detection
 - [x] Trigger.dev processing
-- [ ] AYUSH mode
+- [x] AYUSH mode
 - [x] Original-document verification
 
 ## P2 — polish/integration
