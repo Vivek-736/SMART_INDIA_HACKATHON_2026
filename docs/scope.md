@@ -329,21 +329,21 @@ Patient
 
 ## Build
 
-- [ ] Clinical history schema
-- [ ] Interview state machine
-- [ ] Question/section definitions
-- [ ] AssemblyAI integration
-- [ ] Puter.js + Gemini integration
-- [ ] Zod AI-output validation
-- [ ] Google Cloud TTS
-- [ ] Voice answer flow
-- [ ] Touch answer flow
-- [ ] Language-aware prompts
-- [ ] Progress state
-- [ ] Answer persistence
-- [ ] Loop prevention
-- [ ] Retry handling
-- [ ] Completion detection
+- [x] Clinical history schema
+- [x] Interview state machine
+- [x] Question/section definitions
+- [x] AssemblyAI integration
+- [x] Puter.js + Gemini integration
+- [x] Zod AI-output validation
+- [x] Google Cloud TTS
+- [x] Voice answer flow
+- [x] Touch answer flow
+- [x] Language-aware prompts
+- [x] Progress state
+- [x] Answer persistence
+- [x] Loop prevention
+- [x] Retry handling
+- [x] Completion detection
 
 ## Standard history
 

@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { UserButton } from "@clerk/nextjs";
 import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { db } from "@/db";
 import { visits, medicalDocuments, clinicalHistories } from "@/db/schema";
@@ -14,7 +16,8 @@ import {
   ShieldCheck,
   UserCheck,
   Stethoscope,
-  FolderOpen
+  FolderOpen,
+  LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -68,7 +71,55 @@ export default async function PatientDashboardPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="flex flex-col">
+      {/* ── Dashboard Header ── */}
+      <header className="border-b border-border bg-background/90 backdrop-blur-md sticky top-0 z-40 shrink-0">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <Link href="/patient/dashboard" className="flex items-center gap-3">
+              <Image
+                src="/icon.png"
+                alt="PreConsult Logo"
+                width={32}
+                height={32}
+                className="rounded-lg bg-indigo-600 shadow-xs"
+                priority
+              />
+              <span className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
+                PreConsult
+                <span className="inline-flex items-center rounded-md bg-accent px-1.5 py-0.2 text-[11px] font-semibold text-primary">
+                  Patient
+                </span>
+              </span>
+            </Link>
+            <nav className="hidden md:flex items-center gap-1">
+              <Link
+                href="/patient/dashboard"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-primary transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Dashboard</span>
+              </Link>
+            </nav>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-secondary text-xs text-secondary-foreground font-medium">
+              <Stethoscope className="w-3.5 h-3.5 text-primary" />
+              <span>OPD Active</span>
+            </div>
+            <UserButton
+              afterSignOutUrl="/patient/login"
+              appearance={{
+                elements: { avatarBox: "w-9 h-9 ring-1 ring-border rounded-full" },
+              }}
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ── Dashboard Content ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-card border border-border rounded-2xl p-6 shadow-xs">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -310,7 +361,9 @@ export default async function PatientDashboardPage() {
             )}
           </div>
         </div>
+        </div>
       </div>
+      </main>
     </div>
   );
 }

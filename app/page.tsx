@@ -18,7 +18,7 @@ export default function Home() {
       description:
         "Complete guided, multilingual voice or touch clinical intake, upload previous medical records, and generate pre-consult summaries.",
       icon: User,
-      href: "/patient/login",
+      href: "/patient/dashboard",
       badge: "Multilingual & Voice",
       cta: "Patient Login / Start Intake",
       buttonVariant: "default" as const,
@@ -30,7 +30,7 @@ export default function Home() {
       description:
         "Review AI-structured clinical histories, abnormal lab highlights, original source documents, and finalize diagnosis & prescriptions.",
       icon: Stethoscope,
-      href: "/doctor/login",
+      href: "/doctor/dashboard",
       badge: "History & Triage",
       cta: "Doctor Sign In",
       buttonVariant: "outline" as const,
@@ -42,7 +42,7 @@ export default function Home() {
       description:
         "Monitor live patient throughput, queue status, active kiosk health, and high-level OPD intake metrics in real time.",
       icon: Building2,
-      href: "/hospital/login",
+      href: "/hospital/dashboard",
       badge: "Queue & Kiosks",
       cta: "Hospital Admin Sign In",
       buttonVariant: "outline" as const,

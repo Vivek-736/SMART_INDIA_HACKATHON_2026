@@ -53,6 +53,7 @@ export const patients = pgTable("patients", {
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }),
   uhid: text("uhid").unique(), // Hospital Unique Health ID / ABHA
   dateOfBirth: text("date_of_birth"),
+  age: integer("age"), // Patient age in years — collected on first visit at consent
   gender: text("gender"),
   phone: text("phone"),
   languagePreference: text("language_preference").default("en").notNull(),
