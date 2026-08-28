@@ -575,14 +575,14 @@ Give the doctor immediate visibility into patients ready for consultation.
 
 ## Build
 
-- [ ] Doctor authentication
-- [ ] Doctor role
-- [ ] Today's patients
-- [ ] Waiting patients
-- [ ] Completed intake
-- [ ] Priority/red-flag indication
-- [ ] Patient selection
-- [ ] Accessible queue
+- [x] Doctor authentication
+- [x] Doctor role
+- [x] Today's patients
+- [x] Waiting patients
+- [x] Completed intake
+- [x] Priority/red-flag indication
+- [x] Patient selection
+- [x] Accessible queue
 
 ---
 

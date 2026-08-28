@@ -123,8 +123,8 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
               </p>
             </div>
             <div className="text-right">
-              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-primary">
-                #{visit.queueNumber || "A-12"}
+              <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-primary font-mono">
+                #{visit.queueNumber || 1}
               </span>
             </div>
           </div>
@@ -159,15 +159,17 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
             </div>
           </div>
 
-          {/* Next Steps Guidance */}
-          <div className="space-y-2 pt-1 text-xs text-muted-foreground">
+          <div className="border-t border-dashed border-border/80 my-4" />
+
+          {/* Key OPD Instructions */}
+          <div className="space-y-2 text-xs text-muted-foreground">
             <h4 className="font-bold text-foreground flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-primary" />
-              <span>What to do next:</span>
+              <span>Next Steps for Your Consultation:</span>
             </h4>
-            <ul className="space-y-1.5 pl-5 list-disc text-muted-foreground">
-              <li>Please proceed to the OPD waiting area outside the consultation rooms.</li>
-              <li>Keep your mobile device available; the display screen will alert you when your queue token #{visit.queueNumber || "A-12"} is ready.</li>
+            <ul className="list-disc pl-4 space-y-1.5 leading-relaxed">
+              <li>Please proceed to the <strong>OPD Waiting Hall (Floor 1, Block B)</strong>.</li>
+              <li>Keep your mobile device available; the display screen will alert you when your queue token #{visit.queueNumber || 1} is ready.</li>
               <li>Your doctor will have your entire structured history and uploaded documents pre-loaded.</li>
             </ul>
           </div>

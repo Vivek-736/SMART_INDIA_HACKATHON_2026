@@ -50,7 +50,6 @@ const response = await puter.ai.chat(
 
 ```
 
-
 * **Zod Validation**: Parse raw text output through `Zod` schemas (`ClinicalHistorySchema.parse(JSON.parse(rawText))`) to avoid prompt drift.
 
 ### 2. Speech-to-Text (AssemblyAI)
@@ -65,8 +64,6 @@ const client = new AssemblyAI({ apiKey: process.env.ASSEMBLYAI_API_KEY! });
 const transcript = await client.transcripts.transcribe({ audio: audioUrl });
 
 ```
-
-
 
 ### 3. Text-to-Speech (Google Cloud TTS)
 
@@ -90,8 +87,6 @@ export const finalizeIntakeTask = task({
 });
 
 ```
-
-
 
 ### 5. Document Intelligence (Gemini Vision + UploadThing)
 
@@ -244,7 +239,8 @@ TRIGGER_SECRET_KEY=tr_dev_...
 * [x] **Phase 5 — Document Upload**: UploadThing integration, file metadata, patient document list & skip flow.
 * [x] **Phase 6 — Document Intelligence**: Trigger.dev + Gemini Vision parsing to Drizzle DB timeline entries.
 * [x] **Phase 7 — Async Finalization Pipeline**: Trigger.dev aggregation job (summary + red flag evaluation).
-* [ ] **Phase 8 to 11 — Doctor Experience**: Queue view, summary view, document viewer, treatment entry.
+* [x] **Phase 8 — Doctor Experience (Dashboard & Queue)**: `/doctor/dashboard` live queue, doctor role auth, whitelisting, concurrency locking, and status filters.
+* [ ] **Phase 9 to 11 — Doctor Experience (Clinical View & Rx)**: Clinical summary view, document timeline viewer, treatment & digital prescription builder.
 * [ ] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables.
 * [ ] **Phase 13 — Hospital Operations**: Recharts overview of OPD volume and turnaround.
 * [ ] **Phase 14 & 15 — Interoperability, Security & Hardening**: Zod boundaries, role check verification, error boundary sanitization.
