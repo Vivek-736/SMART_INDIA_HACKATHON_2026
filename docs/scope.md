@@ -846,8 +846,8 @@ That is the product story.
 ## P1 — strong differentiators
 
 - [x] UploadThing
-- [ ] Gemini Vision document extraction
-- [ ] Medical timeline
+- [x] Gemini Vision document extraction
+- [x] Medical timeline
 - [x] Red-flag detection
 - [ ] Trigger.dev processing
 - [ ] AYUSH mode

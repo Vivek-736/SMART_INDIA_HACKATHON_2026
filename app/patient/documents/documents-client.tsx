@@ -17,6 +17,8 @@ import {
   Info,
   ShieldCheck,
   FileCheck2,
+  PlusCircle,
+  UploadCloud,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UploadDropzone } from "@/lib/uploadthing";
@@ -58,6 +60,7 @@ export default function DocumentsClient({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingStatusText, setUploadingStatusText] = useState("");
+  const [justUploadedCount, setJustUploadedCount] = useState<number | null>(null);
   const [, startTransition] = useTransition();
 
   const formatFileSize = (bytes: number) => {
@@ -111,7 +114,6 @@ export default function DocumentsClient({
               </span>
             </span>
           </Link>
-
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Stethoscope className="w-3.5 h-3.5 text-primary" />
             <span>{department}</span>
@@ -137,7 +139,7 @@ export default function DocumentsClient({
             Upload Previous Prescriptions & Reports
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            Upload 1 to 4 past prescriptions, discharge summaries, or blood test reports so your doctor can review your medical history.
+            You can upload multiple files (photos or PDFs). You can also upload one file now and add more right after.
           </p>
         </div>
 
@@ -180,14 +182,16 @@ export default function DocumentsClient({
         {isUploading && (
           <div className="p-4 sm:p-5 rounded-2xl border-2 border-primary/40 bg-primary/5 shadow-md space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Loader2 className="w-5 h-5 animate-spin text-primary shrink-0" />
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-xl bg-primary text-primary-foreground flex items-center justify-center shrink-0">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                </div>
                 <div>
-                  <h4 className="text-sm font-bold text-foreground">
-                    {uploadingStatusText || "Uploading medical files..."}
+                  <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                    <span>{uploadingStatusText || "Uploading medical files..."}</span>
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    Please do not close this window while files are transferring.
+                    Uploading in progress. You can add more documents right after.
                   </p>
                 </div>
               </div>
@@ -200,9 +204,27 @@ export default function DocumentsClient({
             <div className="w-full h-2.5 rounded-full bg-secondary overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-300"
-                style={{ width: `${Math.max(5, uploadProgress)}%` }}
+                style={{ width: `${Math.max(8, uploadProgress)}%` }}
               />
             </div>
+          </div>
+        )}
+
+        {/* Success toast after upload */}
+        {justUploadedCount && justUploadedCount > 0 && !isUploading && (
+          <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between animate-fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span>
+                {justUploadedCount === 1 ? "1 document successfully uploaded!" : `${justUploadedCount} documents successfully uploaded!`} You can upload another file below or proceed.
+              </span>
+            </div>
+            <button
+              onClick={() => setJustUploadedCount(null)}
+              className="text-emerald-700 hover:text-emerald-950 text-xs underline cursor-pointer"
+            >
+              Dismiss
+            </button>
           </div>
         )}
 
@@ -219,16 +241,21 @@ export default function DocumentsClient({
                 "mt-4 px-6 py-2.5 rounded-xl font-bold text-xs bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer shadow-sm transition-transform active:scale-95",
             }}
             content={{
-              label: "Tap to select 1 to 4 photos / PDFs or drag & drop here",
-              allowedContent: "Select multiple files · Images up to 16MB · PDFs up to 32MB",
+              label: documents.length > 0
+                ? "Tap to add another file (or select multiple files together)"
+                : "Tap to select 1 to 4 photos / PDFs or drag & drop here",
+              allowedContent: "Supports multiple files · Images up to 16MB · PDFs up to 32MB",
               button({ ready }) {
-                if (ready) return "Choose 1 to 4 Files";
+                if (ready) {
+                  return documents.length > 0 ? "+ Upload Another Document" : "Choose 1 to 4 Files";
+                }
                 return "Preparing Uploader...";
               },
             }}
             onUploadBegin={(fileName) => {
               setIsUploading(true);
-              setUploadProgress(10);
+              setUploadProgress(15);
+              setJustUploadedCount(null);
               setUploadingStatusText(`Uploading "${fileName}"...`);
             }}
             onUploadProgress={(progress) => {
@@ -240,6 +267,7 @@ export default function DocumentsClient({
             onClientUploadComplete={async (res) => {
               if (res && res.length > 0) {
                 setUploadingStatusText(`Saving ${res.length} record(s) to clinical database...`);
+                let savedCount = 0;
                 for (const file of res) {
                   try {
                     const saved = await recordUploadedDocumentAction({
@@ -252,11 +280,13 @@ export default function DocumentsClient({
                     });
                     if (saved.success && saved.document) {
                       setDocuments((prev) => [saved.document, ...prev]);
+                      savedCount++;
                     }
                   } catch (err) {
                     console.error("Error saving document to database:", err);
                   }
                 }
+                setJustUploadedCount(savedCount);
               }
               setIsUploading(false);
               setUploadProgress(0);
@@ -280,12 +310,30 @@ export default function DocumentsClient({
                 <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                 <span>Uploaded Documents ({documents.length})</span>
               </h3>
-              <span className="text-[11px] text-muted-foreground">
-                Attached to OPD Visit #{queueNumber || "A-12"}
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <PlusCircle className="w-3.5 h-3.5 text-primary" />
+                <span>You can upload more above anytime</span>
               </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* If actively uploading, show a shimmer placeholder in the list */}
+              {isUploading && (
+                <div className="p-3.5 rounded-2xl border-2 border-dashed border-primary/40 bg-primary/5 flex items-center gap-3 animate-pulse">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                    <UploadCloud className="w-5 h-5 animate-bounce" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-primary truncate">
+                      Uploading new file...
+                    </p>
+                    <p className="text-[10.5px] text-muted-foreground">
+                      Saving to visit records
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {documents.map((doc) => {
                 const pdf = isPdf(doc.fileType, doc.fileName);
                 const isDeleting = deletingId === doc.id;
@@ -350,7 +398,7 @@ export default function DocumentsClient({
         <div className="p-4 rounded-2xl bg-secondary/40 border border-border/60 flex items-start gap-3 text-xs text-muted-foreground">
           <Info className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="leading-relaxed">
-            Your uploaded documents are securely encrypted. In the next step, our AI system extracts medication dosages and past lab results to build your medical timeline for the physician.
+            Your uploaded documents are securely encrypted. In the background, our AI system extracts medication dosages and past lab results to build your medical timeline for the physician.
           </p>
         </div>
 
@@ -361,7 +409,7 @@ export default function DocumentsClient({
             disabled={isNavigating || isUploading}
             className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-4 cursor-pointer transition-colors disabled:opacity-50"
           >
-            I have no previous records / Skip this step &rarr;
+            I have no more records / Skip this step &rarr;
           </button>
 
           <Button

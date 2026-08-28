@@ -1,4 +1,4 @@
-import { env } from "@/lib/env";
+import { callPuterAiChat } from "@/lib/ai/puter";
 import { InterviewSection } from "@/lib/clinical/interview-engine";
 
 export interface ExtractionResult {
@@ -9,21 +9,17 @@ export interface ExtractionResult {
   summarySnippet: string;
 }
 
-/**
- * Extract structured medical information from patient answers using Gemini 2.0 / 2.5 Flash API
- */
+function cleanJsonString(raw: string): string {
+  return raw.replace(/```json\n?|\n?```/g, "").trim();
+}
+
 export async function extractClinicalEntities(
   section: InterviewSection,
   question: string,
   answer: string,
   language: string
 ): Promise<ExtractionResult> {
-  const apiKey = env.GEMINI_API_KEY;
-
-  // 1. If Gemini API key is available, call Gemini 2.0 Flash / 2.5 Flash for high-speed structured extraction
-  if (apiKey) {
-    try {
-      const prompt = `You are a clinical documentation assistant for an Indian hospital intake system.
+  const prompt = `You are a clinical documentation assistant for an Indian hospital intake system.
 Analyze the patient's answer in response to the clinical question.
 
 Section: ${section}
@@ -36,48 +32,30 @@ Rules:
 2. Identify any RED FLAG emergency symptoms (e.g. crushing chest pain, diaphoresis, sudden weakness, coughing blood, severe acute dyspnea, anaphylaxis).
 3. Provide a concise 1-sentence doctor-ready summary snippet.
 
-Return ONLY a valid JSON object with this exact structure:
+Return ONLY a valid JSON object with this exact structure without markdown:
 {
-  "structured": { ...extracted key-values },
+  "structured": {},
   "redFlagDetected": true | false,
   "redFlagReason": "string description if true, else null",
   "redFlagSeverity": "LOW" | "MEDIUM" | "HIGH" | "CRITICAL",
   "summarySnippet": "concise English medical summary phrase"
 }`;
 
-      // Call Gemini 2.0 Flash (or 2.5) endpoint
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.1,
-            },
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const rawJsonText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (rawJsonText) {
-          const parsed = JSON.parse(rawJsonText);
-          return {
-            structured: parsed.structured || {},
-            redFlagDetected: !!parsed.redFlagDetected,
-            redFlagReason: parsed.redFlagReason || undefined,
-            redFlagSeverity: parsed.redFlagSeverity || (parsed.redFlagDetected ? "HIGH" : "LOW"),
-            summarySnippet: parsed.summarySnippet || answer,
-          };
-        }
-      }
-    } catch (error) {
-      console.warn("Gemini 2.0 extraction error, falling back to heuristic parser:", error);
+  try {
+    const rawResponse = await callPuterAiChat(prompt, "gemini-2.0-flash");
+    const rawText = cleanJsonString(rawResponse);
+    if (rawText) {
+      const parsed = JSON.parse(rawText);
+      return {
+        structured: parsed.structured || {},
+        redFlagDetected: !!parsed.redFlagDetected,
+        redFlagReason: parsed.redFlagReason || undefined,
+        redFlagSeverity: parsed.redFlagSeverity || (parsed.redFlagDetected ? "HIGH" : "LOW"),
+        summarySnippet: parsed.summarySnippet || answer,
+      };
     }
+  } catch (error) {
+    console.warn("Puter Gemini extraction warning, using heuristic fallback:", error);
   }
 
   // 2. High-reliability Heuristic Clinical Parser Fallback

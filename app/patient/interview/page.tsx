@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useTransition, useMemo } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -23,7 +23,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getInterviewStages, QuestionData } from "@/lib/clinical/interview-engine";
-import { recordInterviewTurnAction, finalizeInterviewSessionAction } from "./actions";
+import { 
+  recordInterviewTurnAction, 
+  finalizeInterviewSessionAction 
+} from "./actions";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -317,7 +320,7 @@ export default function PatientInterviewPage() {
   const language = (searchParams.get("lang") || "en") as "en" | "hi" | "te" | "ta" | "kn";
   const department = searchParams.get("dept") || "General Medicine";
 
-  const stages: QuestionData[] = useMemo(() => getInterviewStages(department), [department]);
+  const [stages, setStages] = useState<QuestionData[]>(() => getInterviewStages(department));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -505,11 +508,26 @@ export default function PatientInterviewPage() {
         userMessage.isRedFlag = redFlagDetected;
       }
 
-      if (result?.adaptiveNext?.adaptedQuestion && nextStage) {
-        nextStage.question[language] = result.adaptiveNext.adaptedQuestion;
-        if (result.adaptiveNext.suggestedOptions.length > 0) {
-          nextStage.suggestions[language] = result.adaptiveNext.suggestedOptions;
-        }
+      if (result?.adaptiveNext?.adaptedQuestion) {
+        const adaptedQ = result.adaptiveNext.adaptedQuestion;
+        const adaptedOptions = result.adaptiveNext.suggestedOptions || [];
+        setStages((prevStages) => {
+          const nextIdx = currentStepIndex + 1;
+          if (!prevStages[nextIdx]) return prevStages;
+          const cloned = [...prevStages];
+          cloned[nextIdx] = {
+            ...cloned[nextIdx],
+            question: {
+              ...cloned[nextIdx].question,
+              [language]: adaptedQ,
+            },
+            suggestions: {
+              ...cloned[nextIdx].suggestions,
+              [language]: adaptedOptions.length > 0 ? adaptedOptions : cloned[nextIdx].suggestions[language],
+            },
+          };
+          return cloned;
+        });
       }
 
       setCurrentStepIndex((prev) => prev + 1);
