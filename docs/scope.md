@@ -763,18 +763,18 @@ Treat real ABDM integration as an integration surface, not the core application.
 
 ## Build
 
-- [ ] Server-only secrets
-- [ ] Input validation
-- [ ] File validation
-- [ ] AI output validation
-- [ ] Role-based access
-- [ ] Consent records
-- [ ] Audit events
-- [ ] Safe error messages
-- [ ] Session cleanup where appropriate
-- [ ] No raw provider errors
-- [ ] Accessibility pass
-- [ ] Manual end-to-end verification
+- [x] Server-only secrets isolation (`lib/env.ts`)
+- [x] Input validation with Zod schemas
+- [x] File validation (UploadThing type & size limits)
+- [x] AI output validation & schema bounds
+- [x] Role-based access guards (Patient, Doctor, Hospital Admin)
+- [x] Consent records & timestamping
+- [x] Audit events
+- [x] Safe user-facing error messages (no raw exceptions)
+- [x] Session cleanup and transition states
+- [x] No raw provider errors exposed
+- [x] Accessibility pass (Contrast, semantic elements, responsive layouts)
+- [x] Manual end-to-end verification & Production build pass
 
 ---
 
