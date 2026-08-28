@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 export const ALLOWED_DOCTOR_EMAILS = [
   "vivek338614@gmail.com",
   "myvini19@gmail.com",
+  "vivekvrc777@gmail.com"
 ].map((e) => e.toLowerCase().trim());
 
 export interface DoctorAuthResult {
