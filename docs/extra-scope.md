@@ -240,7 +240,9 @@ TRIGGER_SECRET_KEY=tr_dev_...
 * [x] **Phase 6 — Document Intelligence**: Trigger.dev + Gemini Vision parsing to Drizzle DB timeline entries.
 * [x] **Phase 7 — Async Finalization Pipeline**: Trigger.dev aggregation job (summary + red flag evaluation).
 * [x] **Phase 8 — Doctor Experience (Dashboard & Queue)**: `/doctor/dashboard` live queue, doctor role auth, whitelisting, concurrency locking, and status filters.
-* [ ] **Phase 9 to 11 — Doctor Experience (Clinical View & Rx)**: Clinical summary view, document timeline viewer, treatment & digital prescription builder.
+* [x] **Phase 9 — Doctor Experience (Patient Clinical View)**: `/doctor/patients/[id]` structured history cards, HPI, medications, red flags, AYUSH mode, and source transcript inspection.
+* [x] **Phase 10 — Documents & Medical Timeline**: Original uploaded document viewer side-by-side with AI entity extraction and chronological timeline.
+* [x] **Phase 11 — Doctor Review & Treatment**: Clinical diagnosis confirmation, digital prescription builder, follow-up scheduling, and visit completion.
 * [ ] **Phase 12 — AYUSH Mode**: Alternate clinical intake schema toggle for Ayurvedic OPD variables.
 * [ ] **Phase 13 — Hospital Operations**: Recharts overview of OPD volume and turnaround.
 * [ ] **Phase 14 & 15 — Interoperability, Security & Hardening**: Zod boundaries, role check verification, error boundary sanitization.

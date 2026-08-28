@@ -618,14 +618,16 @@ Prior investigations
 Red flags
 ```
 
-Also show:
+## Build
 
-- source conversation;
-- AI-generated summary;
-- confidence/verification indicators where appropriate;
-- editable fields.
-
-The doctor should never have to trust a summary blindly.
+- [x] Structured clinical history cards
+- [x] Chief complaint & HPI progression
+- [x] Past medical & surgical history
+- [x] Active medications & allergies
+- [x] Triage red-flag alerts
+- [x] AYUSH variables support
+- [x] Source interview transcript provenance viewer
+- [x] Multi-doctor concurrency lock guard
 
 ---
 
@@ -637,14 +639,14 @@ The doctor should never have to trust a summary blindly.
 
 ## Build
 
-- [ ] Original document viewer
-- [ ] Extracted data
-- [ ] Timeline
-- [ ] Lab values
-- [ ] Abnormal-value indicators
-- [ ] Source-to-extraction comparison
-- [ ] Document status
-- [ ] Manual correction
+- [x] Original document viewer
+- [x] Extracted data
+- [x] Timeline
+- [x] Lab values
+- [x] Abnormal-value indicators
+- [x] Source-to-extraction comparison
+- [x] Document status
+- [x] Manual correction
 
 ## Core principle
 
@@ -660,13 +662,13 @@ Every important extracted clinical fact should be traceable back to the source d
 
 ## Build
 
-- [ ] Editable AI history
-- [ ] Doctor notes
-- [ ] Diagnosis field
-- [ ] Prescription
-- [ ] Follow-up instructions
-- [ ] Final review
-- [ ] Save consultation
+- [x] Editable AI history
+- [x] Doctor notes
+- [x] Diagnosis field
+- [x] Prescription
+- [x] Follow-up instructions
+- [x] Final review
+- [x] Save consultation
 
 ## Safety boundary
 
@@ -839,9 +841,9 @@ That is the product story.
 - [x] Zod structured history
 - [x] Neon persistence
 - [x] Patient review/submit
-- [ ] Doctor queue
-- [ ] Doctor clinical history
-- [ ] Doctor review
+- [x] Doctor queue
+- [x] Doctor clinical history
+- [x] Doctor review
 
 ## P1 — strong differentiators
 
@@ -849,9 +851,9 @@ That is the product story.
 - [x] Gemini Vision document extraction
 - [x] Medical timeline
 - [x] Red-flag detection
-- [ ] Trigger.dev processing
+- [x] Trigger.dev processing
 - [ ] AYUSH mode
-- [ ] Original-document verification
+- [x] Original-document verification
 
 ## P2 — polish/integration
 
