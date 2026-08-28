@@ -22,6 +22,7 @@ import {
   Thermometer,
   Leaf,
   FileCheck2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -195,7 +196,17 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
           </div>
 
           {/* Quick Action Navigation CTAs */}
-          <div className="flex items-center gap-2.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border/60">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-border/60">
+            <a
+              href={`/api/fhir/export?visitId=${visitId}`}
+              download
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-secondary/80 hover:bg-secondary border border-border text-foreground font-semibold text-xs transition-colors cursor-pointer shadow-2xs"
+              title="Download official ABDM FHIR R4 document"
+            >
+              <Download className="w-3.5 h-3.5 text-primary" />
+              <span>Export FHIR R4</span>
+            </a>
+
             <Button
               variant="outline"
               size="sm"
