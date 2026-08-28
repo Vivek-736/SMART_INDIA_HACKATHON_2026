@@ -8,25 +8,34 @@ export default function PatientLoginPage() {
     <div className="h-screen max-h-screen w-screen overflow-hidden bg-linear-to-br from-white via-indigo-50/30 to-indigo-50 text-foreground flex flex-col justify-between px-4 sm:px-8 lg:px-12 py-4 sm:py-6">
       {/* Top Header Spanning Across Whole Page Above Image & Component */}
       <header className="flex flex-col items-center text-center space-y-1.5 shrink-0">
-        <Link href="/" className="inline-flex items-center gap-3 group mb-0.5">
-          <Image
-            src="/icon.png"
-            alt="PreConsult Logo"
-            width={36}
-            height={36}
-            className="rounded-lg bg-indigo-600 shadow-xs transition-transform group-hover:scale-105"
-          />
-          <span className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            PreConsult
-            <span className="inline-flex items-center rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-primary">
-              Patient Portal
+        <div className="flex items-center justify-between w-full max-w-6xl px-2">
+          <Link href="/" className="inline-flex items-center gap-3 group">
+            <Image
+              src="/icon.png"
+              alt="PreConsult Logo"
+              width={32}
+              height={32}
+              className="rounded-lg bg-indigo-600 shadow-xs transition-transform group-hover:scale-105"
+            />
+            <span className="text-xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              PreConsult
+              <span className="inline-flex items-center rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-primary">
+                Patient Portal
+              </span>
             </span>
-          </span>
-        </Link>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
+          </Link>
+
+          <Link
+            href="/doctor/login"
+            className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors bg-accent/60 hover:bg-accent border border-primary/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer"
+          >
+            <span>Doctor Sign In &rarr;</span>
+          </Link>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground pt-1">
           Welcome to PreConsult
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground max-w-lg">
+        <p className="text-xs sm:text-sm text-muted-foreground max-w-lg">
           Complete your guided clinical intake before meeting your doctor.
         </p>
       </header>

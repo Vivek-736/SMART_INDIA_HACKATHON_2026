@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { visits, consents, interviewSessions } from "@/db/schema";
 import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { revalidatePath } from "next/cache";
+import { sql } from "drizzle-orm";
 
 export interface CreateConsentPayload {
   language: "en" | "hi" | "te" | "ta" | "kn";
@@ -20,8 +21,12 @@ export async function submitConsentAndCreateSessionAction(payload: CreateConsent
 
   const { patient } = patientData;
 
-  // 1. Generate OPD Queue Number (10 - 99)
-  const queueNumber = Math.floor(10 + Math.random() * 89);
+  // 1. Generate Sequential OPD Queue Number (1, 2, 3, 4...) in database order
+  const [maxQueueRow] = await db
+    .select({ maxQueue: sql<number>`COALESCE(MAX(${visits.queueNumber}), 0)` })
+    .from(visits);
+
+  const queueNumber = Number(maxQueueRow?.maxQueue || 0) + 1;
 
   // 2. Create Active Visit
   const [newVisit] = await db

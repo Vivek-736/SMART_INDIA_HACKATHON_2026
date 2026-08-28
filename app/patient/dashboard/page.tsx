@@ -183,7 +183,7 @@ export default async function PatientDashboardPage() {
                   <div>
                     <span className="text-[11px] text-muted-foreground block">Queue No.</span>
                     <span className="text-lg font-extrabold text-foreground">
-                      #{latestVisit.queueNumber || "A-12"}
+                      #{latestVisit.queueNumber || 1}
                     </span>
                   </div>
                   <div>
