@@ -8,29 +8,35 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserCheck } from "lucide-react";
-import { savePatientAgeAction } from "@/app/patient/consent/age-actions";
+import { savePatientProfileAction } from "@/app/patient/consent/age-actions";
 
 interface AgeDialogProps {
-  /** Dialog is uncontrolled and self-manages open state based on this flag */
+  /** Dialog shows when true; cannot be dismissed without completing */
   required: boolean;
-  /** Called once age is successfully saved so the parent can proceed */
   onComplete: () => void;
 }
 
 /**
- * AgeDialog
+ * AgeDialog (now a full Patient Profile dialog)
  *
- * Shown once at the start of the first consent visit when the patient's age
- * is not yet recorded in the database. Completely self-contained — manages
- * its own input state, validation, and server action call.
- *
- * Stays open until a valid age is submitted. Cannot be dismissed without
- * completing it (no close button, no outside-click dismiss).
+ * Collects age (number input) and gender (dropdown) on the patient's very
+ * first visit. Both are required. Cannot be dismissed without submitting.
+ * Stays open until both fields are saved to the database successfully.
  */
 export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
   const [ageInput, setAgeInput] = useState("");
+  const [gender, setGender] = useState<"male" | "female" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -45,11 +51,15 @@ export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
       setError("Please enter a valid age between 1 and 120.");
       return;
     }
+    if (!gender) {
+      setError("Please select your gender.");
+      return;
+    }
 
     setError(null);
 
     startTransition(async () => {
-      const result = await savePatientAgeAction(age);
+      const result = await savePatientProfileAction(age, gender);
       if (result.success) {
         onComplete();
       } else {
@@ -59,50 +69,66 @@ export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
   };
 
   return (
-    <Dialog open={required} onOpenChange={() => { /* intentionally locked — cannot dismiss */ }}>
+    <Dialog open={required} onOpenChange={() => { /* locked — must complete */ }}>
       <DialogContent
         className="max-w-sm rounded-2xl"
         showCloseButton={false}
       >
-        <DialogHeader className="space-y-2 text-center items-center pb-2">
+        <DialogHeader className="space-y-2 text-center items-center pb-1">
           <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
             <UserCheck className="w-6 h-6 text-primary" />
           </div>
           <DialogTitle className="text-xl font-extrabold tracking-tight">
-            One quick detail
+            A couple of quick details
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-            To help the clinical team, please enter your age in years.
-            You only need to do this once.
+            This helps your clinical team provide better care. You only need to do this once.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 pt-2">
-          {/* Age input */}
+        <div className="space-y-4 pt-1">
+          {/* Age */}
           <div className="space-y-1.5">
-            <label htmlFor="age-input" className="text-xs font-semibold text-foreground">
+            <Label htmlFor="age-input" className="text-xs font-semibold text-foreground">
               Your Age (years)
-            </label>
-            <input
+            </Label>
+            <Input
               id="age-input"
               type="number"
               min={1}
               max={120}
               value={ageInput}
-              onChange={(e) => {
-                setAgeInput(e.target.value);
-                setError(null);
-              }}
+              onChange={(e) => { setAgeInput(e.target.value); setError(null); }}
               onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(); }}
               placeholder="e.g. 42"
               autoFocus
-              className={`w-full rounded-xl border px-4 py-3 text-base font-semibold text-foreground bg-card focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all
-                ${error ? "border-rose-400 bg-rose-50/40" : "border-border"}`}
+              className="rounded-xl text-base font-semibold"
             />
-            {error && (
-              <p className="text-xs text-rose-600 font-medium">{error}</p>
-            )}
           </div>
+
+          {/* Gender */}
+          <div className="space-y-1.5">
+            <Label htmlFor="gender-select" className="text-xs font-semibold text-foreground">
+              Gender
+            </Label>
+            <Select
+              value={gender}
+              onValueChange={(val) => { setGender(val as "male" | "female"); setError(null); }}
+            >
+              <SelectTrigger id="gender-select" className="rounded-xl w-full">
+                <SelectValue placeholder="Select gender…" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Error */}
+          {error && (
+            <p className="text-xs text-rose-600 font-medium">{error}</p>
+          )}
 
           <Button
             onClick={handleSubmit}
