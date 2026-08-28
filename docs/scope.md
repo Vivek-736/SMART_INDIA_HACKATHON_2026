@@ -407,12 +407,12 @@ Let the patient confirm what was captured.
 
 ## Build
 
-- [ ] Human-readable summary
-- [ ] Sectioned history
-- [ ] Correction flow
-- [ ] Confirmation
-- [ ] Final submission
-- [ ] Visit status transition
+- [x] Human-readable summary
+- [x] Sectioned history
+- [x] Correction flow
+- [x] Confirmation
+- [x] Final submission
+- [x] Visit status transition
 
 ## Done when
 
@@ -439,14 +439,15 @@ Let patients provide the physical history they already carry.
 
 ## Build
 
-- [ ] UploadThing integration
-- [ ] File type validation
-- [ ] File size validation
-- [ ] Upload progress
-- [ ] Original file persistence
-- [ ] Document metadata
-- [ ] Processing status
-- [ ] Patient document list
+- [x] UploadThing integration
+- [x] File type validation
+- [x] File size validation
+- [x] Upload progress
+- [x] Original file persistence
+- [x] Document metadata
+- [x] Processing status
+- [x] Patient document list
+- [x] Skippable transition to complete screen
 
 ## Important rule
 
@@ -829,25 +830,25 @@ That is the product story.
 
 ## P0 — absolutely prove
 
-- [ ] Clerk patient authentication
-- [ ] Patient/kiosk intake
-- [ ] Multilingual question display
-- [ ] AssemblyAI speech-to-text
-- [ ] Google TTS
-- [ ] Gemini adaptive questioning
-- [ ] Zod structured history
-- [ ] Neon persistence
-- [ ] Patient review/submit
+- [x] Clerk patient authentication
+- [x] Patient/kiosk intake
+- [x] Multilingual question display
+- [x] AssemblyAI speech-to-text
+- [x] Google TTS
+- [x] Gemini adaptive questioning
+- [x] Zod structured history
+- [x] Neon persistence
+- [x] Patient review/submit
 - [ ] Doctor queue
 - [ ] Doctor clinical history
 - [ ] Doctor review
 
 ## P1 — strong differentiators
 
-- [ ] UploadThing
+- [x] UploadThing
 - [ ] Gemini Vision document extraction
 - [ ] Medical timeline
-- [ ] Red-flag detection
+- [x] Red-flag detection
 - [ ] Trigger.dev processing
 - [ ] AYUSH mode
 - [ ] Original-document verification
