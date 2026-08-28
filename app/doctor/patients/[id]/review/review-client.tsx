@@ -501,18 +501,44 @@ export default function DoctorReviewClient({ data }: DoctorReviewClientProps) {
         {/* AYUSH Ahara-Vihara Regimen or Follow-up */}
         <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between">
           {isAyushDept ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
-                <Leaf className="w-4 h-4 text-emerald-600" />
-                <h3>Ayurvedic Ahara-Vihara (Diet & Lifestyle Regimen)</h3>
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                  <Leaf className="w-4 h-4 text-emerald-600" />
+                  <h3>Pathya-Apathya & Ahara-Vihara (पथ्य-अपथ्य)</h3>
+                </div>
+                <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                  Ayurvedic Regimen
+                </span>
               </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  "Pathya: Ushnodaka (Warm water) & Light soup",
+                  "Apathya: Avoid cold drinks & curd at night",
+                  "Pathya: Moong dal khichdi & Jeera water",
+                  "Vihara: 30 min morning Pranayama & early sleep",
+                ].map((chip, cIdx) => (
+                  <button
+                    key={cIdx}
+                    type="button"
+                    disabled={isLockedByOtherDoctor}
+                    onClick={() => setAyushRegimen((prev) => (prev ? `${prev}\n• ${chip}` : `• ${chip}`))}
+                    className="text-[10px] font-semibold text-emerald-900 bg-emerald-100/70 hover:bg-emerald-200/90 border border-emerald-300 px-2 py-1 rounded-lg cursor-pointer transition-colors"
+                  >
+                    + {chip}
+                  </button>
+                ))}
+              </div>
+
               <textarea
                 rows={3}
                 value={ayushRegimen}
                 onChange={(e) => setAyushRegimen(e.target.value)}
                 placeholder="Pathya / Apathya (Dietary recommendations, seasonal lifestyle advice)..."
                 disabled={isLockedByOtherDoctor}
-                className="w-full px-4 py-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/20 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20"
+                className="w-full px-4 py-2.5 rounded-2xl border border-emerald-200 bg-emerald-50/20 text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-emerald-500/20 font-medium"
               />
             </div>
           ) : (
