@@ -13,7 +13,6 @@ import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { extractClinicalEntities } from "@/lib/ai/gemini-extract";
 import { InterviewSection } from "@/lib/clinical/interview-engine";
 import { revalidatePath } from "next/cache";
-
 import { generateAdaptiveQuestion } from "@/lib/ai/puter-gemini";
 
 export interface RecordTurnPayload {
@@ -126,15 +125,8 @@ export async function finalizeInterviewSessionAction(sessionId: string, visitId:
     })
     .where(eq(interviewSessions.id, sessionId));
 
-  // 2. Update visit status to READY_FOR_DOCTOR
-  await db
-    .update(visits)
-    .set({
-      status: "READY_FOR_DOCTOR",
-      updatedAt: new Date(),
-    })
-    .where(eq(visits.id, visitId));
-
+  // 2. Visit stays at INTAKE_IN_PROGRESS — the review page confirm action
+  //    sets READY_FOR_DOCTOR after the patient verifies their summary.
   // 3. Upsert Clinical History Record
   const existingHistory = await db.query.clinicalHistories.findFirst({
     where: eq(clinicalHistories.visitId, visitId),

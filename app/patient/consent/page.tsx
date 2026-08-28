@@ -21,10 +21,10 @@ export default async function PatientConsentPage() {
 
   const patientRow = await db.query.patients.findFirst({
     where: eq(patients.id, patientData.patient.id),
-    columns: { age: true },
+    columns: { age: true, gender: true },
   });
 
-  const ageRequired = patientRow?.age == null;
+  const ageRequired = patientRow?.age == null || patientRow?.gender == null;
 
   return <ConsentScreen ageRequired={ageRequired} />;
 }
