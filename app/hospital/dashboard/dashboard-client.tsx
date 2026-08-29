@@ -10,13 +10,16 @@ import {
   Stethoscope,
   Activity,
   Building2,
-  Leaf,
-  Layers,
   BarChart3,
   Search,
   Monitor,
   TrendingUp,
   FolderOpen,
+  HeartPulse,
+  ShieldCheck,
+  Zap,
+  Sparkles,
+  PieChart as PieChartIcon,
 } from "lucide-react";
 import {
   AreaChart,
@@ -50,6 +53,31 @@ export interface HospitalPatientRow {
   createdAt: string;
 }
 
+export interface AgeDiseaseTrendPoint {
+  ageGroup: string;
+  Respiratory: number;
+  Gastrointestinal: number;
+  Metabolic: number;
+  Musculoskeletal: number;
+  ViralFebrile: number;
+}
+
+export interface RootCauseDistributionPoint {
+  name: string;
+  value: number;
+  color: string;
+}
+
+export interface DiseaseEtiologyInsight {
+  conditionName: string;
+  dominantAgeBand: string;
+  caseCount: number;
+  extractedRootCause: string;
+  aggravatingFactors: string[];
+  severityDistribution: string;
+  clinicalRecommendation: string;
+}
+
 export interface HospitalDashboardData {
   totalPatients: number;
   waitingCount: number;
@@ -62,6 +90,9 @@ export interface HospitalDashboardData {
   ageDistribution: { ageGroup: string; count: number }[];
   priorityDistribution: { name: string; value: number; color: string }[];
   patientList: HospitalPatientRow[];
+  ageDiseaseTrends: AgeDiseaseTrendPoint[];
+  diseaseEtiologyInsights: DiseaseEtiologyInsight[];
+  rootCauseDistribution: RootCauseDistributionPoint[];
 }
 
 interface HospitalDashboardClientProps {
@@ -69,14 +100,12 @@ interface HospitalDashboardClientProps {
 }
 
 const DEPT_COLORS = ["#4f46e5", "#10b981"];
-const TRIAGE_COLORS = ["#4338ca", "#f43f5e", "#f59e0b"];
 
 export default function HospitalDashboardClient({ data }: HospitalDashboardClientProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [deptFilter, setDeptFilter] = useState<string>("ALL");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
 
-  // Filter patient flow table
   const filteredPatients = data.patientList.filter((p) => {
     if (deptFilter !== "ALL" && p.department !== deptFilter) return false;
     if (statusFilter !== "ALL" && p.status !== statusFilter) return false;
@@ -96,7 +125,7 @@ export default function HospitalDashboardClient({ data }: HospitalDashboardClien
   ];
 
   return (
-    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-7">
+    <div className="max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-8 space-y-8">
       {/* Top Welcome & KPI Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -105,10 +134,10 @@ export default function HospitalDashboardClient({ data }: HospitalDashboardClien
             <span>Hospital Operations Command Center</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Hospital OPD Operations & Analytics
+            Hospital OPD Operations & Epidemiological Analytics
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground">
-            Real-time patient intake velocity, department volume, and triage distribution
+            Real-time intake velocity, age-to-disease correlations, and interview-extracted etiology trends
           </p>
         </div>
 
@@ -195,17 +224,200 @@ export default function HospitalDashboardClient({ data }: HospitalDashboardClien
         </div>
       </div>
 
-      {/* Visual Analytics Section (Recharts) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart 1: Hourly Intake & Completed Velocity (2 Columns) */}
+      {/* ── NEW: Age-to-Disease Trends & Interview Etiology Extraction Section ── */}
+      <div className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <HeartPulse className="w-5 h-5 text-rose-600" />
+              <h2 className="text-lg font-bold text-foreground">
+                Disease Trends vs. Age & Extracted Root Causes
+              </h2>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Cross-correlated demographic disease prevalence with underlying etiologies synthesized from patient intake interviews
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 text-primary font-bold text-xs">
+            <Sparkles className="w-3.5 h-3.5" />
+            AI Intake Synthesis
+          </span>
+        </div>
+
+        {/* 2-Column Epidemiological Analytics Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Chart 1: Age to Disease Trends (2 Columns) */}
+          <div className="lg:col-span-2 p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4 text-primary" />
+                  <span>Age Bracket vs. Disease Category Prevalence</span>
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  Distribution of condition clusters across age groups
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2.5 py-1 rounded-lg">
+                Multi-Condition Matrix
+              </span>
+            </div>
+
+            <div className="h-[280px] w-full pt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.ageDiseaseTrends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                  <XAxis dataKey="ageGroup" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e2e8f0",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                    }}
+                  />
+                  <Legend iconType="circle" wrapperStyle={{ fontSize: "11px", paddingTop: "8px" }} />
+                  <Bar dataKey="Respiratory" name="Respiratory (Cough/Asthma)" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Gastrointestinal" name="Gastrointestinal (Acid/GERD)" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Metabolic" name="Cardio / Metabolic (BP/Sugar)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Musculoskeletal" name="Musculoskeletal (Joints/Back)" fill="#ec4899" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="ViralFebrile" name="Viral / Febrile Illness" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart 2: Extracted Root Cause Distribution Donut (1 Column) */}
+          <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between">
+            <div className="space-y-0.5">
+              <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
+                <PieChartIcon className="w-4 h-4 text-primary" />
+                <span>Extracted Etiology Distribution</span>
+              </h3>
+              <p className="text-xs text-muted-foreground">Underlying causes extracted from interviews</p>
+            </div>
+
+            <div className="h-[200px] w-full relative flex items-center justify-center">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.rootCauseDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={80}
+                    paddingAngle={4}
+                    dataKey="value"
+                  >
+                    {data.rootCauseDistribution.map((entry, index) => (
+                      <Cell key={`cell-root-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#ffffff",
+                      borderColor: "#e2e8f0",
+                      borderRadius: "12px",
+                      fontSize: "12px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Root Cause Color Legend */}
+            <div className="space-y-1.5 pt-1 border-t border-border text-xs">
+              {data.rootCauseDistribution.map((item, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                    <span className="text-[11.5px] font-medium text-foreground truncate max-w-[170px]">{item.name}</span>
+                  </div>
+                  <span className="font-bold text-foreground">{item.value} cases</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Disease-to-Cause Intelligence Matrix */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          {data.diseaseEtiologyInsights.map((insight, idx) => (
+            <div
+              key={idx}
+              className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3 flex flex-col justify-between hover:border-primary/40 transition-colors"
+            >
+              <div className="space-y-2">
+                <div className="flex items-start justify-between gap-2 border-b border-border pb-2.5">
+                  <div>
+                    <h4 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                      <Zap className="w-4 h-4 text-primary shrink-0" />
+                      <span>{insight.conditionName}</span>
+                    </h4>
+                    <span className="text-[11px] text-muted-foreground">
+                      Dominant Age: <strong className="text-foreground">{insight.dominantAgeBand}</strong>
+                    </span>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-bold text-xs shrink-0">
+                    {insight.caseCount} Cases
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <span className="font-bold text-foreground block text-[11px] uppercase tracking-wide">
+                      Synthesized Root Cause (Interview Analysis):
+                    </span>
+                    <p className="text-muted-foreground mt-0.5 leading-relaxed font-medium">
+                      {insight.extractedRootCause}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span className="font-bold text-foreground block text-[11px] uppercase tracking-wide">
+                      Key Aggravating Triggers:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {insight.aggravatingFactors.map((f, fIdx) => (
+                        <span
+                          key={fIdx}
+                          className="px-2 py-0.5 rounded-md bg-secondary text-foreground text-[10.5px] font-semibold border border-border"
+                        >
+                          {f}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-secondary/40 border border-border/70 text-xs flex items-start gap-2 text-muted-foreground mt-1">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-bold text-foreground text-[11px] block">
+                    Protocol & OPD Guidance:
+                  </span>
+                  <span className="text-[11px] leading-relaxed">{insight.clinicalRecommendation}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Visual Analytics Section (Turnaround & Department) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
+        {/* Chart: Hourly Intake & Completed Velocity (2 Columns) */}
         <div className="lg:col-span-2 p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="space-y-0.5">
               <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
                 <TrendingUp className="w-4 h-4 text-primary" />
-                <span>Hourly Patient Flow & Turnaround</span>
+                <span>Hourly Patient Flow & Turnaround Velocity</span>
               </h3>
-              <p className="text-xs text-muted-foreground">Patient arrivals vs completed consultations</p>
+              <p className="text-xs text-muted-foreground">Patient arrivals vs completed doctor consultations</p>
             </div>
             <span className="text-[11px] font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-lg">
               Today&apos;s Velocity
@@ -261,7 +473,7 @@ export default function HospitalDashboardClient({ data }: HospitalDashboardClien
           </div>
         </div>
 
-        {/* Chart 2: Department Split (General vs AYUSH) */}
+        {/* Chart: Department Split (General vs AYUSH) */}
         <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4 flex flex-col justify-between">
           <div className="space-y-0.5">
             <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
@@ -317,235 +529,171 @@ export default function HospitalDashboardClient({ data }: HospitalDashboardClien
         </div>
       </div>
 
-      {/* Secondary Metrics: Age Trends & Kiosk Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Age Demographics Bar Chart */}
-        <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4">
-          <div className="space-y-0.5">
-            <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 text-primary" />
-              <span>Patient Age Demographics</span>
-            </h3>
-            <p className="text-xs text-muted-foreground">Distribution across age groups</p>
+      {/* Kiosk Fleet & Terminal Status */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+        <div className="p-4 rounded-2xl border border-border bg-card flex items-center gap-3 shadow-2xs">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <Monitor className="w-5 h-5" />
           </div>
-
-          <div className="h-[170px] w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data.ageDistribution} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                <XAxis dataKey="ageGroup" tick={{ fontSize: 11 }} stroke="#94a3b8" />
-                <YAxis allowDecimals={false} tick={{ fontSize: 11 }} stroke="#94a3b8" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#ffffff",
-                    borderColor: "#e2e8f0",
-                    borderRadius: "12px",
-                    fontSize: "12px",
-                  }}
-                />
-                <Bar dataKey="count" name="Patients" fill="#6366f1" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Kiosk #01 (Main Lobby)</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+            <span className="text-[11px] text-muted-foreground">Active · Audio & Regional Input OK</span>
           </div>
         </div>
 
-        {/* Kiosk Operational Health Status */}
-        <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-3.5 lg:col-span-2">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <h3 className="text-sm font-extrabold text-foreground flex items-center gap-2">
-                <Monitor className="w-4 h-4 text-primary" />
-                <span>Kiosks & Intake Pipeline Health</span>
-              </h3>
-              <p className="text-xs text-muted-foreground">Real-time status of on-premise intake devices</p>
-            </div>
-            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
-              All Systems Normal
-            </span>
+        <div className="p-4 rounded-2xl border border-border bg-card flex items-center gap-3 shadow-2xs">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <Monitor className="w-5 h-5" />
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            {/* Kiosk 1 */}
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/80 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-foreground">OPD Lobby Kiosk #1</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <p className="text-[11px] text-muted-foreground">Touch & Voice Mode &bull; Online</p>
-              <div className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
-                Active &bull; Multilingual
-              </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Kiosk #02 (AYUSH Wing)</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
+            <span className="text-[11px] text-muted-foreground">Active · Prakriti & Agni Module OK</span>
+          </div>
+        </div>
 
-            {/* Kiosk 2 */}
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/80 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-foreground">AYUSH Wing Kiosk #2</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <p className="text-[11px] text-muted-foreground">Ayurvedic Mode &bull; Online</p>
-              <div className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md inline-block">
-                Active &bull; Multilingual
-              </div>
+        <div className="p-4 rounded-2xl border border-border bg-card flex items-center gap-3 shadow-2xs">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <Monitor className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-foreground">Kiosk #03 (Emergency Wing)</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             </div>
-
-            {/* AI Speech Engine */}
-            <div className="p-3.5 rounded-2xl bg-secondary/40 border border-border/80 text-xs space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-foreground">AI Speech & Extraction</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <p className="text-[11px] text-muted-foreground">AssemblyAI + Google TTS</p>
-              <div className="text-[10.5px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md inline-block">
-                Low Latency (&lt;1.2s)
-              </div>
-            </div>
+            <span className="text-[11px] text-muted-foreground">Active · Priority Triage Auto-Alert OK</span>
           </div>
         </div>
       </div>
 
-      {/* Patient Flow Queue Table */}
-      <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-4">
-        {/* Table Filters & Search */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-4">
+      {/* Real-Time Patient Intake Stream & Queue Table */}
+      <div className="p-5 sm:p-6 rounded-3xl border border-border bg-card shadow-xs space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
           <div className="space-y-0.5">
-            <h3 className="text-sm sm:text-base font-extrabold text-foreground flex items-center gap-2">
-              <Layers className="w-4 h-4 text-primary" />
-              <span>Today&apos;s Live Patient Intake Stream ({filteredPatients.length})</span>
+            <h3 className="text-base font-extrabold text-foreground flex items-center gap-2">
+              <FolderOpen className="w-4 h-4 text-primary" />
+              <span>Live Patient Intake Stream</span>
             </h3>
-            <p className="text-xs text-muted-foreground">Detailed view of recent hospital arrivals</p>
+            <p className="text-xs text-muted-foreground">
+              Showing {filteredPatients.length} of {data.patientList.length} total registered patients today
+            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Search Input */}
-            <div className="relative min-w-[200px]">
+          {/* Filters & Search Input */}
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="relative">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="text"
+                placeholder="Search name, token or UHID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search patient, UHID, #token..."
-                className="w-full pl-8 pr-3 py-1.5 rounded-xl border border-border bg-background text-xs text-foreground focus:outline-hidden focus:ring-2 focus:ring-primary/20"
+                className="pl-8 pr-3 py-1.5 rounded-xl border border-border bg-secondary/50 text-xs text-foreground focus:outline-hidden focus:ring-1 focus:ring-primary w-48 sm:w-56"
               />
             </div>
 
-            {/* Department Filter */}
             <select
               value={deptFilter}
               onChange={(e) => setDeptFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer"
+              className="py-1.5 px-3 rounded-xl border border-border bg-secondary/50 text-xs font-medium text-foreground focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Departments</option>
               <option value="General Medicine">General Medicine</option>
               <option value="AYUSH (Ayurveda)">AYUSH (Ayurveda)</option>
             </select>
 
-            {/* Status Filter */}
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 rounded-xl border border-border bg-background text-xs font-semibold text-foreground focus:outline-hidden cursor-pointer"
+              className="py-1.5 px-3 rounded-xl border border-border bg-secondary/50 text-xs font-medium text-foreground focus:outline-hidden cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
-              <option value="WAITING">Waiting</option>
-              <option value="READY_FOR_DOCTOR">Ready for Doctor</option>
+              <option value="READY_FOR_DOCTOR">Waiting</option>
               <option value="IN_CONSULTATION">In Consultation</option>
               <option value="COMPLETED">Completed</option>
             </select>
           </div>
         </div>
 
-        {/* Table Rows */}
-        {filteredPatients.length === 0 ? (
-          <div className="p-8 text-center space-y-2">
-            <FolderOpen className="w-8 h-8 text-muted-foreground mx-auto" />
-            <p className="text-xs text-muted-foreground">No patients matched the current filters.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="border-b border-border/80 text-[11px] uppercase tracking-wider text-muted-foreground font-bold">
-                  <th className="py-2.5 px-3">Token</th>
-                  <th className="py-2.5 px-3">Patient Name</th>
-                  <th className="py-2.5 px-3">UHID</th>
-                  <th className="py-2.5 px-3">Department</th>
-                  <th className="py-2.5 px-3">Priority / Triage</th>
-                  <th className="py-2.5 px-3">Status</th>
-                  <th className="py-2.5 px-3">Attending Doctor</th>
-                  <th className="py-2.5 px-3">Registered At</th>
-                </tr>
-              </thead>
-              
-              <tbody className="divide-y divide-border/60">
-                {filteredPatients.map((p) => (
-                  <tr key={p.visitId} className="hover:bg-secondary/30 transition-colors">
-                    <td className="py-3 px-3 font-mono font-bold text-primary">#{p.queueNumber}</td>
-                    <td className="py-3 px-3 font-bold text-foreground">
-                      {p.patientName}
-                      {(p.age || p.gender) && (
-                        <span className="text-[11px] font-normal text-muted-foreground ml-1.5">
-                          ({[p.age ? `${p.age}y` : null, p.gender].filter(Boolean).join(", ")})
-                        </span>
-                      )}
+        {/* Patient Table */}
+        <div className="overflow-x-auto rounded-2xl border border-border">
+          <table className="w-full text-left text-xs">
+            <thead className="bg-secondary/60 text-muted-foreground font-semibold text-[11px] uppercase border-b border-border">
+              <tr>
+                <th className="py-3 px-4">Token #</th>
+                <th className="py-3 px-4">Patient Name & Demographics</th>
+                <th className="py-3 px-4">Department</th>
+                <th className="py-3 px-4">Triage Priority</th>
+                <th className="py-3 px-4">Visit Status</th>
+                <th className="py-3 px-4">Attending Doctor</th>
+                <th className="py-3 px-4">Time</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/60">
+              {filteredPatients.length > 0 ? (
+                filteredPatients.map((patient) => (
+                  <tr key={patient.visitId} className="hover:bg-secondary/30 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-foreground">
+                      #{patient.queueNumber}
                     </td>
-                    <td className="py-3 px-3 font-mono text-muted-foreground">{p.uhid || "PENDING"}</td>
-                    <td className="py-3 px-3 font-medium text-foreground">
-                      <span className="flex items-center gap-1.5">
-                        {p.department.includes("AYUSH") ? (
-                          <Leaf className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        ) : (
-                          <Building2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                        )}
-                        <span>{p.department}</span>
-                      </span>
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-foreground">{patient.patientName}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {patient.age ? `${patient.age}y` : "Age N/A"} &bull; {patient.gender || "Gender N/A"} &bull; UHID:{" "}
+                        <span className="font-mono">{patient.uhid || "PENDING"}</span>
+                      </div>
                     </td>
-                    <td className="py-3 px-3">
-                      {p.hasRedFlag && p.status !== "COMPLETED" ? (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-bold text-rose-700 bg-rose-100 px-2 py-0.5 rounded-md">
-                          <AlertTriangle className="w-3 h-3" />
+                    <td className="py-3 px-4">
+                      <span className="font-medium text-foreground">{patient.department}</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {patient.hasRedFlag ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 font-bold text-[10.5px]">
+                          <span className="w-1.5 h-1.5 rounded-full bg-rose-600 animate-pulse" />
                           URGENT
                         </span>
                       ) : (
-                        <span className="inline-flex items-center text-[10.5px] font-semibold text-muted-foreground bg-secondary px-2 py-0.5 rounded-md">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary text-muted-foreground font-semibold text-[10.5px]">
                           Routine
                         </span>
                       )}
                     </td>
-                    <td className="py-3 px-3 font-semibold">
-                      {p.status === "COMPLETED" && (
-                        <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md text-[10.5px] font-bold">
-                          Completed
-                        </span>
-                      )}
-                      {p.status === "IN_CONSULTATION" && (
-                        <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md text-[10.5px] font-bold">
-                          In Session
-                        </span>
-                      )}
-                      {p.status === "READY_FOR_DOCTOR" && (
-                        <span className="text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md text-[10.5px] font-bold">
-                          Ready for Doctor
-                        </span>
-                      )}
-                      {p.status === "WAITING" && (
-                        <span className="text-muted-foreground bg-secondary px-2 py-0.5 rounded-md text-[10.5px]">
-                          Waiting
-                        </span>
-                      )}
+                    <td className="py-3 px-4">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-[10.5px] capitalize ${
+                          patient.status === "COMPLETED"
+                            ? "bg-emerald-50 text-emerald-700"
+                            : patient.status === "IN_CONSULTATION"
+                            ? "bg-indigo-50 text-indigo-700"
+                            : "bg-blue-50 text-blue-700"
+                        }`}
+                      >
+                        {patient.status.replace(/_/g, " ").toLowerCase()}
+                      </span>
                     </td>
-                    <td className="py-3 px-3 font-medium text-muted-foreground">
-                      {p.attendingDoctorName ? `Dr. ${p.attendingDoctorName}` : "—"}
+                    <td className="py-3 px-4 text-muted-foreground">
+                      {patient.attendingDoctorName ? `Dr. ${patient.attendingDoctorName}` : "—"}
                     </td>
-                    <td className="py-3 px-3 font-mono text-[11px] text-muted-foreground">
-                      {p.createdAt}
+                    <td className="py-3 px-4 text-muted-foreground font-mono text-[11px]">
+                      {patient.createdAt}
                     </td>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-xs text-muted-foreground">
+                    No matching patient intakes found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
