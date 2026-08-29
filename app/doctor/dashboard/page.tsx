@@ -16,53 +16,73 @@ export default async function DoctorDashboardPage() {
   const currentDoctorUser = docAuth.user;
   const doctorFullName = [currentDoctorUser.firstName, currentDoctorUser.lastName].filter(Boolean).join(" ") || "Doctor";
 
-  // 1. Query all visits
-  const allVisits = await db.query.visits.findMany({
-    orderBy: [desc(visits.createdAt)],
-  });
+  // 1. Parallel Batch Query — Fetch all required data in ONE roundtrip (Eliminating N+1 query waterfall)
+  const [
+    allVisits,
+    allPatients,
+    allUsers,
+    allHistories,
+    allDocs,
+    allFlags,
+    allDoctors,
+  ] = await Promise.all([
+    db.query.visits.findMany({
+      orderBy: [desc(visits.createdAt)],
+    }),
+    db.query.patients.findMany(),
+    db.query.users.findMany(),
+    db.query.clinicalHistories.findMany(),
+    db.query.medicalDocuments.findMany(),
+    db.query.redFlags.findMany(),
+    db.query.doctors.findMany(),
+  ]);
 
-  // 2. Hydrate visits with clinical data
+  // 2. Build high-speed O(1) in-memory lookup maps
+  const patientMap = new Map(allPatients.map((p) => [p.id, p]));
+  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  const historyMap = new Map(allHistories.map((h) => [h.visitId, h]));
+  const doctorMap = new Map(allDoctors.map((d) => [d.id, d]));
+
+  // Group documents by visitId
+  const docsCountMap = new Map<string, number>();
+  for (const doc of allDocs) {
+    if (doc.visitId) {
+      docsCountMap.set(doc.visitId, (docsCountMap.get(doc.visitId) || 0) + 1);
+    }
+  }
+
+  // Group red flags by visitId
+  const flagsMap = new Map<string, Array<{ description: string; severity: string }>>();
+  for (const flag of allFlags) {
+    if (flag.visitId) {
+      const list = flagsMap.get(flag.visitId) || [];
+      list.push({ description: flag.description, severity: flag.severity });
+      flagsMap.set(flag.visitId, list);
+    }
+  }
+
+  // 3. Hydrate queue items with O(1) in-memory lookups
   const queueItems: QueueItem[] = [];
 
   for (const v of allVisits) {
-    const patientRow = await db.query.patients.findFirst({
-      where: eq(patients.id, v.patientId),
-    });
-
+    const patientRow = patientMap.get(v.patientId);
     if (!patientRow) continue;
 
-    const patientUser = patientRow.userId
-      ? await db.query.users.findFirst({
-          where: eq(users.id, patientRow.userId),
-        })
-      : null;
-
+    const patientUser = patientRow.userId ? userMap.get(patientRow.userId) : null;
     const patientName = patientUser
       ? [patientUser.firstName, patientUser.lastName].filter(Boolean).join(" ") || "Patient"
       : "Patient";
 
-    const history = await db.query.clinicalHistories.findFirst({
-      where: eq(clinicalHistories.visitId, v.id),
-    });
-
-    const docs = await db.query.medicalDocuments.findMany({
-      where: eq(medicalDocuments.visitId, v.id),
-    });
-
-    const flags = await db.query.redFlags.findMany({
-      where: eq(redFlags.visitId, v.id),
-    });
+    const history = historyMap.get(v.id);
+    const flags = flagsMap.get(v.id) || [];
+    const documentsCount = docsCountMap.get(v.id) || 0;
 
     // Attending doctor info if assigned
     let attendingDoc = null;
     if (v.doctorId) {
-      const docRow = await db.query.doctors.findFirst({
-        where: eq(doctors.id, v.doctorId),
-      });
+      const docRow = doctorMap.get(v.doctorId);
       if (docRow) {
-        const docUser = await db.query.users.findFirst({
-          where: eq(users.id, docRow.userId),
-        });
+        const docUser = userMap.get(docRow.userId);
         attendingDoc = {
           id: docRow.id,
           name: docUser ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor" : "Doctor",
@@ -100,11 +120,8 @@ export default async function DoctorDashboardPage() {
       attendingDoctor: attendingDoc,
       chiefComplaint: chiefComplaintText,
       summaryText: history?.summaryText || undefined,
-      redFlags: flags.map((f) => ({
-        description: f.description,
-        severity: f.severity,
-      })),
-      documentsCount: docs.length,
+      redFlags: flags,
+      documentsCount,
     });
   }
 

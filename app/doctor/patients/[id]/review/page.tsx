@@ -1,30 +1,28 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getOrSyncCurrentDoctor } from "@/lib/auth/sync-doctor";
 import { db } from "@/db";
-import {
-  visits,
-  patients,
-  users,
-  clinicalHistories,
-  doctorReviews,
+import { 
+  visits, 
+  patients, 
+  users, 
+  clinicalHistories, 
+  doctorReviews, 
   prescriptions as prescriptionsTable,
-  doctors,
+  doctors
 } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import DoctorReviewClient, {
-  DoctorReviewViewData,
-} from "./review-client";
+import DoctorReviewClient, { DoctorReviewViewData } from "./review-client";
 import { PrescriptionItem } from "./actions";
 
-interface DoctorReviewPageProps {
+interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function DoctorReviewPage({ params }: DoctorReviewPageProps) {
+export default async function DoctorPatientReviewPage({ params }: PageProps) {
   const { id: visitId } = await params;
-
-  // 1. Authenticate Doctor
   const docAuth = await getOrSyncCurrentDoctor();
+
+  // 1. Auth Guard
   if (!docAuth.isAuthorized || !docAuth.doctor || !docAuth.user) {
     redirect("/doctor/login");
   }
@@ -58,40 +56,28 @@ export default async function DoctorReviewPage({ params }: DoctorReviewPageProps
     ? [patientUser.firstName, patientUser.lastName].filter(Boolean).join(" ") || "Patient"
     : "Patient";
 
-  // 3. Check Lock State
+  // 3. Parallel Batch Fetching: Doctor Info, Clinical History, Review, Prescriptions
+  const [docRow, history, existingReview, existingDbPrescriptions] = await Promise.all([
+    visit.doctorId ? db.query.doctors.findFirst({ where: eq(doctors.id, visit.doctorId) }) : Promise.resolve(null),
+    db.query.clinicalHistories.findFirst({ where: eq(clinicalHistories.visitId, visitId) }),
+    db.query.doctorReviews.findFirst({ where: eq(doctorReviews.visitId, visitId) }),
+    db.query.prescriptions.findMany({ where: eq(prescriptionsTable.visitId, visitId) }),
+  ]);
+
   let attendingDoctorName: string | null = null;
   const isLockedByOtherDoctor =
     visit.status === "IN_CONSULTATION" &&
     !!visit.doctorId &&
     visit.doctorId !== currentDoctor.id;
 
-  if (visit.doctorId) {
-    const docRow = await db.query.doctors.findFirst({
-      where: eq(doctors.id, visit.doctorId),
+  if (docRow) {
+    const docUser = await db.query.users.findFirst({
+      where: eq(users.id, docRow.userId),
     });
-    if (docRow) {
-      const docUser = await db.query.users.findFirst({
-        where: eq(users.id, docRow.userId),
-      });
-      attendingDoctorName = docUser
-        ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
-        : "Doctor";
-    }
+    attendingDoctorName = docUser
+      ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
+      : "Doctor";
   }
-
-  // 4. Fetch Clinical History
-  const history = await db.query.clinicalHistories.findFirst({
-    where: eq(clinicalHistories.visitId, visitId),
-  });
-
-  // 5. Fetch Existing Doctor Review & Prescriptions
-  const existingReview = await db.query.doctorReviews.findFirst({
-    where: eq(doctorReviews.visitId, visitId),
-  });
-
-  const existingDbPrescriptions = await db.query.prescriptions.findMany({
-    where: eq(prescriptionsTable.visitId, visitId),
-  });
 
   let existingPrescriptions: PrescriptionItem[] = [];
   if (existingDbPrescriptions.length > 0) {
@@ -117,20 +103,20 @@ export default async function DoctorReviewPage({ params }: DoctorReviewPageProps
     }
   }
 
-  const reviewPayload: DoctorReviewViewData = {
+  const clientData: DoctorReviewViewData = {
     visitId: visit.id,
     queueNumber: visit.queueNumber || 1,
     department: visit.department,
     priority: visit.priority,
     status: visit.status,
-    isLockedByOtherDoctor: !!isLockedByOtherDoctor,
+    isLockedByOtherDoctor,
     attendingDoctorName,
     patient: {
       id: patientRow.id,
       name: patientName,
-      uhid: patientRow.uhid,
       age: patientRow.age,
       gender: patientRow.gender,
+      uhid: patientRow.uhid,
       ayushModeEnabled: patientRow.ayushModeEnabled,
     },
     initialSummaryText: history?.summaryText || "",
@@ -141,5 +127,5 @@ export default async function DoctorReviewPage({ params }: DoctorReviewPageProps
     isAlreadySigned: existingReview?.status === "SIGNED",
   };
 
-  return <DoctorReviewClient data={reviewPayload} />;
+  return <DoctorReviewClient data={clientData} />;
 }

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // App
-  NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().default("https://pre-consult-six.vercel.app"),
 
   // Clerk
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().default("pk_test_placeholder"),

@@ -1,20 +1,9 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { 
-  getOrSyncCurrentHospitalAdmin, 
-  ALLOWED_HOSPITAL_ADMIN_EMAILS 
-} from "@/lib/auth/sync-hospital";
+import { getOrSyncCurrentHospitalAdmin, ALLOWED_HOSPITAL_ADMIN_EMAILS } from "@/lib/auth/sync-hospital";
 import { db } from "@/db";
-import { 
-  visits, 
-  patients, 
-  users, 
-  doctors, 
-  redFlags, 
-  clinicalHistories, 
-  doctorReviews 
-} from "@/db/schema";
-import { desc, eq } from "drizzle-orm";
+import { visits, patients, users, doctors, redFlags, clinicalHistories, doctorReviews } from "@/db/schema";
+import { desc } from "drizzle-orm";
 import { ShieldAlert, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import HospitalDashboardClient, {
@@ -74,10 +63,41 @@ export default async function HospitalDashboardPage() {
     );
   }
 
-  // 3. Query all visits & histories for analytics
-  const allVisits = await db.query.visits.findMany({
-    orderBy: [desc(visits.createdAt)],
-  });
+  // 3. Parallel Batch Query — Fetch all required data in ONE roundtrip (Eliminating N+1 query waterfall)
+  const [
+    allVisits,
+    allPatients,
+    allUsers,
+    allFlags,
+    allHistories,
+    allReviews,
+    allDoctors,
+  ] = await Promise.all([
+    db.query.visits.findMany({
+      orderBy: [desc(visits.createdAt)],
+    }),
+    db.query.patients.findMany(),
+    db.query.users.findMany(),
+    db.query.redFlags.findMany(),
+    db.query.clinicalHistories.findMany(),
+    db.query.doctorReviews.findMany(),
+    db.query.doctors.findMany(),
+  ]);
+
+  // 4. Build high-speed O(1) in-memory lookup maps
+  const patientMap = new Map(allPatients.map((p) => [p.id, p]));
+  const userMap = new Map(allUsers.map((u) => [u.id, u]));
+  const historyMap = new Map(allHistories.map((h) => [h.visitId, h]));
+  const reviewMap = new Map(allReviews.map((r) => [r.visitId, r]));
+  const doctorMap = new Map(allDoctors.map((d) => [d.id, d]));
+
+  // Group red flags by visitId
+  const flagsCountMap = new Map<string, number>();
+  for (const flag of allFlags) {
+    if (flag.visitId) {
+      flagsCountMap.set(flag.visitId, (flagsCountMap.get(flag.visitId) || 0) + 1);
+    }
+  }
 
   const patientList: HospitalPatientRow[] = [];
   let waitingCount = 0;
@@ -110,54 +130,34 @@ export default async function HospitalDashboardPage() {
   };
 
   for (const v of allVisits) {
-    const patientRow = await db.query.patients.findFirst({
-      where: eq(patients.id, v.patientId),
-    });
-
+    const patientRow = patientMap.get(v.patientId);
     if (!patientRow) continue;
 
-    const patientUser = patientRow.userId
-      ? await db.query.users.findFirst({
-          where: eq(users.id, patientRow.userId),
-        })
-      : null;
-
+    const patientUser = patientRow.userId ? userMap.get(patientRow.userId) : null;
     const patientName = patientUser
       ? [patientUser.firstName, patientUser.lastName].filter(Boolean).join(" ") || "Patient"
       : "Patient";
 
-    const flags = await db.query.redFlags.findMany({
-      where: eq(redFlags.visitId, v.id),
-    });
+    const flagsCount = flagsCountMap.get(v.id) || 0;
+    const hasRedFlag = flagsCount > 0 || v.priority === "URGENT" || v.priority === "EMERGENCY";
 
-    const hasRedFlag = flags.length > 0 || v.priority === "URGENT" || v.priority === "EMERGENCY";
-
-    // Clinical history & diagnosis for etiology extraction
-    const history = await db.query.clinicalHistories.findFirst({
-      where: eq(clinicalHistories.visitId, v.id),
-    });
-
-    const review = await db.query.doctorReviews.findFirst({
-      where: eq(doctorReviews.visitId, v.id),
-    });
+    // Clinical history & review
+    const history = historyMap.get(v.id);
+    const review = reviewMap.get(v.id);
 
     // Attending doctor info
     let attendingDoctorName: string | null = null;
     if (v.doctorId) {
-      const docRow = await db.query.doctors.findFirst({
-        where: eq(doctors.id, v.doctorId),
-      });
+      const docRow = doctorMap.get(v.doctorId);
       if (docRow) {
-        const docUser = await db.query.users.findFirst({
-          where: eq(users.id, docRow.userId),
-        });
+        const docUser = userMap.get(docRow.userId);
         attendingDoctorName = docUser
           ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
           : "Doctor";
       }
     }
 
-    // Counts
+    // Status & department aggregations
     if (v.status === "COMPLETED") {
       completedCount++;
     } else if (v.status === "IN_CONSULTATION") {
@@ -328,7 +328,6 @@ export default async function HospitalDashboardPage() {
   ];
 
   // Comprehensive Extracted Etiology & Root Cause Analysis
-  const totalEtiologySum = Object.values(etiologyCounts).reduce((a, b) => a + b, 0) || 1;
   const rootCauseDistribution: RootCauseDistributionPoint[] = [
     { name: "Infectious & Viral Exposure", value: Math.max(2, etiologyCounts["Infectious & Viral"]), color: "#4f46e5" },
     { name: "Dietary & Lifestyle Imbalance", value: Math.max(1, etiologyCounts["Dietary & Metabolic"]), color: "#f59e0b" },

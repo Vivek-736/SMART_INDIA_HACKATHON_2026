@@ -303,7 +303,7 @@ function translateDepartmentAndRoom(dept: string, room: string | null | undefine
 export function generatePrescriptionHtmlEmail(payload: PrescriptionEmailPayload): string {
   const langCode = (payload.languagePreference || "en").toLowerCase();
   const t = getPatientTranslations(langCode as SupportedLanguage);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://pre-consult-six.vercel.app";
   const dashboardUrl = `${appUrl.replace(/\/$/, "")}/patient/dashboard`;
   const formattedDate = new Date().toLocaleDateString(
     langCode === "hi" ? "hi-IN" : langCode === "te" ? "te-IN" : langCode === "ta" ? "ta-IN" : langCode === "kn" ? "kn-IN" : "en-IN",
