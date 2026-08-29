@@ -2,14 +2,14 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // App
-  NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
+  NEXT_PUBLIC_APP_URL: z.string().default("http://localhost:3000"),
 
   // Clerk
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1, "Clerk Publishable Key is required"),
-  CLERK_SECRET_KEY: z.string().min(1, "Clerk Secret Key is required"),
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().default("pk_test_placeholder"),
+  CLERK_SECRET_KEY: z.string().default("sk_test_placeholder"),
 
   // Database
-  DATABASE_URL: z.string().min(1, "Database URL is required"),
+  DATABASE_URL: z.string().default("postgresql://postgres:postgres@localhost:5432/preconsult"),
 
   // Document Uploads (UploadThing)
   UPLOADTHING_SECRET: z.string().optional(),
@@ -33,13 +33,17 @@ const envSchema = z.object({
   PUTER_API_KEY: z.string().optional(),
   NEXT_PUBLIC_PUTER_AUTH_TOKEN: z.string().optional(),
   NEXT_PUBLIC_PUTER_APP_ID: z.string().optional(),
+
+  // Email (Nodemailer SMTP)
+  NODEMAILER_EMAIL: z.string().optional(),
+  NODEMAILER_PASSWORD: z.string().optional(),
 });
 
-export const env = envSchema.parse({
-  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
-  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-  DATABASE_URL: process.env.DATABASE_URL,
+const parsed = envSchema.safeParse({
+  NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || "pk_test_placeholder",
+  CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY || "sk_test_placeholder",
+  DATABASE_URL: process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/preconsult",
   UPLOADTHING_SECRET: process.env.UPLOADTHING_SECRET,
   UPLOADTHING_APP_ID: process.env.UPLOADTHING_APP_ID,
   UPLOADTHING_TOKEN: process.env.UPLOADTHING_TOKEN,
@@ -55,4 +59,8 @@ export const env = envSchema.parse({
   PUTER_API_KEY: process.env.PUTER_API_KEY,
   NEXT_PUBLIC_PUTER_AUTH_TOKEN: process.env.NEXT_PUBLIC_PUTER_AUTH_TOKEN,
   NEXT_PUBLIC_PUTER_APP_ID: process.env.NEXT_PUBLIC_PUTER_APP_ID,
+  NODEMAILER_EMAIL: process.env.NODEMAILER_EMAIL,
+  NODEMAILER_PASSWORD: process.env.NODEMAILER_PASSWORD,
 });
+
+export const env = parsed.success ? parsed.data : ({} as z.infer<typeof envSchema>);

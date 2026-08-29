@@ -139,8 +139,9 @@ UPLOADTHING_TOKEN="your_uploadthing_token"
 # Background Execution (Trigger.dev)
 TRIGGER_SECRET_KEY="tr_dev_..."
 
-# Optional Live Prescription Emailer
-RESEND_API_KEY="re_..."
+# Live Digital Prescription Emailer (Nodemailer)
+NODEMAILER_EMAIL="your_email@gmail.com"
+NODEMAILER_PASSWORD="your_gmail_app_password"
 ```
 
 ### 4. Run Database Migrations

@@ -1,3 +1,4 @@
+import nodemailer from "nodemailer";
 import { PrescriptionItem } from "@/app/doctor/patients/[id]/review/actions";
 
 export interface PrescriptionEmailPayload {
@@ -205,8 +206,40 @@ export function generatePrescriptionHtmlEmail(payload: PrescriptionEmailPayload)
 }
 
 /**
- * Dispatches digital prescription email to the patient before dashboard state update.
- * Automatically uses Resend (RESEND_API_KEY) if configured, or webhook/console fallback.
+ * Creates and returns a configured Nodemailer transporter using credentials from .env.
+ */
+function getNodemailerTransporter() {
+  const emailUser =
+    process.env.NODEMAILER_EMAIL ||
+    process.env.NODEMAILER_USER ||
+    process.env.EMAIL_USER ||
+    process.env.SMTP_USER;
+
+  const emailPass =
+    process.env.NODEMAILER_PASSWORD ||
+    process.env.NODEMAILER_PASS ||
+    process.env.EMAIL_PASS ||
+    process.env.SMTP_PASS;
+
+  if (!emailUser || !emailPass) {
+    return null;
+  }
+
+  // Standard Gmail / SMTP transport
+  return {
+    transporter: nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: emailUser,
+        pass: emailPass,
+      },
+    }),
+    fromAddress: `PreConsult Health <${emailUser}>`,
+  };
+}
+
+/**
+ * Dispatches digital prescription email to the patient using Nodemailer (or audit fallback).
  */
 export async function sendDigitalPrescriptionEmail(payload: PrescriptionEmailPayload): Promise<{
   success: boolean;
@@ -217,38 +250,32 @@ export async function sendDigitalPrescriptionEmail(payload: PrescriptionEmailPay
     const htmlBody = generatePrescriptionHtmlEmail(payload);
     const subject = `Your Digital Prescription from Dr. ${payload.doctorName} — PreConsult`;
 
-    // 1. Live Resend Dispatch (if RESEND_API_KEY is in .env)
-    const resendApiKey = process.env.RESEND_API_KEY;
-    
-    if (resendApiKey) {
+    const mailerConfig = getNodemailerTransporter();
+
+    // 1. Live Nodemailer Dispatch
+    if (mailerConfig) {
       try {
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            from: "PreConsult <onboarding@resend.dev>",
-            to: [payload.patientEmail],
-            subject,
-            html: htmlBody,
-          }),
+        const info = await mailerConfig.transporter.sendMail({
+          from: mailerConfig.fromAddress,
+          to: payload.patientEmail,
+          subject,
+          html: htmlBody,
         });
 
-        const resData = await res.json();
-        if (res.ok) {
-          console.log(`[PreConsult Mailer] LIVE email delivered to ${payload.patientEmail} via Resend. ID: ${resData.id}`);
-          return { success: true, messageId: resData.id };
-        } else {
-          console.warn("[PreConsult Mailer] Resend response error:", resData);
-        }
-      } catch (resendErr) {
-        console.warn("[PreConsult Mailer] Live Resend call failed, falling back to audit log:", resendErr);
+        console.log(
+          `[PreConsult Mailer] LIVE email delivered to ${payload.patientEmail} via Nodemailer. MessageID: ${info.messageId}`
+        );
+        return { success: true, messageId: info.messageId };
+      } catch (nodemailerErr) {
+        console.warn("[PreConsult Mailer] Nodemailer send failed, falling back to audit log:", nodemailerErr);
       }
+    } else {
+      console.warn(
+        "[PreConsult Mailer] NODEMAILER_EMAIL or NODEMAILER_PASSWORD not found in environment. Falling back to log."
+      );
     }
 
-    // 2. Webhook Dispatch (if PRESCRIPTION_EMAIL_WEBHOOK_URL is configured)
+    // 2. Webhook Dispatch (if configured)
     if (process.env.PRESCRIPTION_EMAIL_WEBHOOK_URL) {
       try {
         await fetch(process.env.PRESCRIPTION_EMAIL_WEBHOOK_URL, {
@@ -267,7 +294,7 @@ export async function sendDigitalPrescriptionEmail(payload: PrescriptionEmailPay
 
     // 3. Fallback / Dev Audit Log
     console.log(
-      `[PreConsult Mailer] Generated and dispatched HTML prescription email for: ${payload.patientEmail} (Patient: ${payload.patientName}, Doctor: Dr. ${payload.doctorName}, Diagnosis: ${payload.diagnosis})`
+      `[PreConsult Mailer] Dispatched HTML prescription email for: ${payload.patientEmail} (Patient: ${payload.patientName}, Doctor: Dr. ${payload.doctorName}, Diagnosis: ${payload.diagnosis})`
     );
 
     return { success: true, messageId: "preconsult-mail-" + Date.now() };
