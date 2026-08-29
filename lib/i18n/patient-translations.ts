@@ -50,6 +50,20 @@ export interface TranslationDictionary {
   extractionComplete: string;
   proceedToReview: string;
   skipForNow: string;
+  chooseFiles: string;
+  uploadAnother: string;
+  preparingUploader: string;
+  tapToSelect: string;
+  tapToAddMore: string;
+  allowedFilesHint: string;
+  doctorRx: string;
+  doctorRxDesc: string;
+  labTests: string;
+  labTestsDesc: string;
+  dischargeSummary: string;
+  dischargeSummaryDesc: string;
+  scansXrays: string;
+  scansXraysDesc: string;
 
   // Review & Confirm History
   reviewTitle: string;
@@ -61,6 +75,8 @@ export interface TranslationDictionary {
   ayurvedicProfile: string;
   confirmAndSubmit: string;
   editAnswers: string;
+  somethingLooksWrong: string;
+  looksCorrectProceed: string;
   patientConfirmationNote: string;
 
   // Intake Complete
@@ -144,10 +160,24 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     extractingAiInfo: "AI Extracting Clinical Timeline...",
     extractionComplete: "OCR Analysis Complete",
     proceedToReview: "Proceed to Review History",
-    skipForNow: "Skip Document Upload",
+    skipForNow: "I have no more records / Skip this step",
+    chooseFiles: "Choose 1 to 4 Files",
+    uploadAnother: "+ Upload Another Document",
+    preparingUploader: "Preparing Uploader...",
+    tapToSelect: "Tap to select 1 to 4 photos / PDFs or drag & drop here",
+    tapToAddMore: "Tap to add another file (or select multiple files together)",
+    allowedFilesHint: "Supports multiple files · Images up to 16MB · PDFs up to 32MB",
+    doctorRx: "Doctor Rx",
+    doctorRxDesc: "Past prescriptions",
+    labTests: "Lab Tests",
+    labTestsDesc: "Blood, urine, panels",
+    dischargeSummary: "Discharge Summary",
+    dischargeSummaryDesc: "Hospital records",
+    scansXrays: "Scans & X-Rays",
+    scansXraysDesc: "Photos or PDFs",
 
     reviewTitle: "Review Your Clinical History",
-    reviewSubtitle: "Please review your answers before submitting to the doctor.",
+    reviewSubtitle: "Please read through the summary below. If everything looks correct, confirm to proceed.",
     chiefComplaint: "Chief Complaint",
     symptomsDetails: "Symptoms & History of Present Illness",
     pastHistory: "Past Medical History",
@@ -155,7 +185,9 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     ayurvedicProfile: "Ayurvedic Health Profile",
     confirmAndSubmit: "Confirm & Submit to Doctor",
     editAnswers: "Edit Answers",
-    patientConfirmationNote: "I confirm that the above health information provided by me is accurate.",
+    somethingLooksWrong: "Something looks wrong",
+    looksCorrectProceed: "Looks Correct — Proceed",
+    patientConfirmationNote: "By confirming, you acknowledge that the above information represents your reported history.",
 
     intakeSubmittedTitle: "Clinical Intake Complete!",
     intakeSubmittedSubtitle: "Your structured clinical history has been submitted directly to the attending doctor's screen.",
@@ -234,7 +266,21 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     extractingAiInfo: "AI द्वारा मेडिकल टाइमलाइन तैयार की जा रही है...",
     extractionComplete: "विश्लेषण पूरा हुआ",
     proceedToReview: "विवरण की समीक्षा करें",
-    skipForNow: "अपलोड छोड़ें और आगे बढ़ें",
+    skipForNow: "मेरे पास कोई और दस्तावेज़ नहीं है / छोड़ें",
+    chooseFiles: "1 से 4 फ़ाइलें चुनें",
+    uploadAnother: "+ अन्य दस्तावेज़ जोड़ें",
+    preparingUploader: "अपलोडर तैयार हो रहा है...",
+    tapToSelect: "फ़ोटो या PDF चुनने के लिए यहाँ टैप करें",
+    tapToAddMore: "अन्य फ़ाइल जोड़ने के लिए टैप करें",
+    allowedFilesHint: "फ़ोटो (16MB तक) · PDF (32MB तक)",
+    doctorRx: "डॉक्टर पर्चा",
+    doctorRxDesc: "पुराने दवा पर्चे",
+    labTests: "लैब टेस्ट",
+    labTestsDesc: "रक्त, मूत्र और अन्य जांच",
+    dischargeSummary: "डिस्चार्ज समरी",
+    dischargeSummaryDesc: "अस्पताल के रिकॉर्ड्स",
+    scansXrays: "स्कैन और एक्स-रे",
+    scansXraysDesc: "फ़ोटो या रिपोर्ट",
 
     reviewTitle: "अपने स्वास्थ्य विवरण की समीक्षा करें",
     reviewSubtitle: "डॉक्टर को जमा करने से पहले कृपया अपने उत्तरों की जांच कर लें।",
@@ -245,7 +291,9 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     ayurvedicProfile: "आयुर्वेदिक स्वास्थ्य प्रोफाइल",
     confirmAndSubmit: "पुष्टि करें और डॉक्टर को भेजें",
     editAnswers: "उत्तर बदलें",
-    patientConfirmationNote: "मैं पुष्टि करता/करती हूँ कि मेरे द्वारा दी गई जानकारी सही है।",
+    somethingLooksWrong: "कुछ सुधार करना चाहते हैं",
+    looksCorrectProceed: "सब सही है — आगे बढ़ें",
+    patientConfirmationNote: "पुष्टि करके, आप स्वीकार करते हैं कि ऊपर दी गई जानकारी आपके द्वारा दी गई सही जानकारी है।",
 
     intakeSubmittedTitle: "जानकारी सफलतापूर्वक दर्ज हुई!",
     intakeSubmittedSubtitle: "आपकी स्वास्थ्य जानकारी सीधे डॉक्टर की स्क्रीन पर भेज दी गई है।",
@@ -324,7 +372,21 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     extractingAiInfo: "AI ద్వారా మెడికల్ టైమ్‌లైన్ రూపొందించబడుతోంది...",
     extractionComplete: "విశ్లేషణ పూర్తయింది",
     proceedToReview: "వివరాలను సమీక్షించండి",
-    skipForNow: "అప్‌లోడ్ దాటవేసి ముందుకు వెళ్లండి",
+    skipForNow: "ఇతర డాక్యుమెంట్లు లేవు / దాటవేయండి",
+    chooseFiles: "1 నుండి 4 ఫైళ్లను ఎంచుకోండి",
+    uploadAnother: "+ మరొక డాక్యుమెంట్ జోడించండి",
+    preparingUploader: "అప్‌లోడర్ సిద్ధమవుతోంది...",
+    tapToSelect: "ఫోటోలు లేదా PDFలను ఎంచుకోవడానికి ఇక్కడ నొక్కండి",
+    tapToAddMore: "మరొక ఫైల్ జోడించడానికి నొక్కండి",
+    allowedFilesHint: "ఫోటోలు (16MB వరకు) · PDFలు (32MB వరకు)",
+    doctorRx: "డాక్టర్ ప్రిస్క్రిప్షన్",
+    doctorRxDesc: "పాత ప్రిస్క్రిప్షన్లు",
+    labTests: "ల్యాబ్ పరీక్షలు",
+    labTestsDesc: "రక్త, మూత్ర పరీక్షలు",
+    dischargeSummary: "డిశ్చార్జ్ సారాంశం",
+    dischargeSummaryDesc: "ఆసుపత్రి రికార్డులు",
+    scansXrays: "స్కాన్లు & ఎక్స్-రేలు",
+    scansXraysDesc: "ఫోటోలు లేదా రిపోర్టులు",
 
     reviewTitle: "మీ ఆరోగ్య వివరాలను సమీక్షించండి",
     reviewSubtitle: "డాక్టర్‌కు సమర్పించే ముందు దయచేసి మీ సమాధానాలను ఒకసారి తనిఖీ చేయండి.",
@@ -335,7 +397,9 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     ayurvedicProfile: "ఆయుర్వేద ఆరోగ్య ప్రొఫైల్",
     confirmAndSubmit: "ధృవీకరించి డాక్టర్‌కు పంపండి",
     editAnswers: "సమాధానాలు మార్చండి",
-    patientConfirmationNote: "నేను అందించిన ఆరోగ్య సమాచారం సరైనదని ధృవీకరిస్తున్నాను.",
+    somethingLooksWrong: "మార్పులు చేయాలనుకుంటున్నాను",
+    looksCorrectProceed: "అన్నీ సరైనవి — ముందుకు వెళ్లండి",
+    patientConfirmationNote: "ధృవీకరించడం ద్వారా, పైన తెలిపిన వివరాలు సరైనవని మీరు అంగీకరిస్తున్నారు.",
 
     intakeSubmittedTitle: "వివరాల నమోదు పూర్తయింది!",
     intakeSubmittedSubtitle: "మీ ఆరోగ్య వివరాలు నేరుగా హాజరయ్యే వైద్యుని స్క్రీన్‌కు పంపబడ్డాయి.",
@@ -414,7 +478,21 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     extractingAiInfo: "AI மூலம் மருத்துவ காலவரிசை தயாரிக்கப்படுகிறது...",
     extractionComplete: "பகுப்பாய்வு முடிந்தது",
     proceedToReview: "விவரங்களை மதிப்பாய்வு செய்க",
-    skipForNow: "தவிர்த்துவிட்டு தொடரவும்",
+    skipForNow: "வேறு ஆவணங்கள் இல்லை / தவிர்க்கவும்",
+    chooseFiles: "1 முதல் 4 கோப்புகளைத் தேர்ந்தெடுக்கவும்",
+    uploadAnother: "+ மற்றொரு ஆவணத்தை சேர்க்கவும்",
+    preparingUploader: "ஏற்றி தயாராகிறது...",
+    tapToSelect: "புகைப்படங்கள் அல்லது PDFகளைத் தேர்ந்தெடுக்க தட்டவும்",
+    tapToAddMore: "மற்றொரு கோப்பை சேர்க்க தட்டவும்",
+    allowedFilesHint: "புகைப்படங்கள் (16MB வரை) · PDF (32MB வரை)",
+    doctorRx: "மருத்துவர் சீட்டு",
+    doctorRxDesc: "முந்தைய மருந்து சீட்டுகள்",
+    labTests: "ஆய்வக பரிசோதனை",
+    labTestsDesc: "இரத்த, சிறுநீர் பரிசோதனைகள்",
+    dischargeSummary: "டிஸ்சார்ஜ் சம்மரி",
+    dischargeSummaryDesc: "மருத்துவமனை பதிவுகள்",
+    scansXrays: "ஸ்கேன் & எக்ஸ்-ரே",
+    scansXraysDesc: "புகைப்படங்கள் அல்லது PDF",
 
     reviewTitle: "உங்கள் சுகாதார விவரங்களை சரிபார்க்கவும்",
     reviewSubtitle: "மருத்துவரிடம் சமர்ப்பிக்கும் முன் உங்கள் பதில்களை மதிப்பாய்வு செய்யவும்.",
@@ -425,7 +503,9 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     ayurvedicProfile: "ஆயுர்வேத சுகாதார விவரம்",
     confirmAndSubmit: "உறுதிசெய்து மருத்துவருக்கு அனுப்பவும்",
     editAnswers: "பதில்களை மாற்றவும்",
-    patientConfirmationNote: "நான் வழங்கிய சுகாதார தகவல்கள் துல்லியமானவை என்பதை உறுதிப்படுத்துகிறேன்.",
+    somethingLooksWrong: "மாற்றங்களை செய்ய விரும்புகிறேன்",
+    looksCorrectProceed: "அனைத்தும் சரி — தொடரவும்",
+    patientConfirmationNote: "நான் வழங்கிய தகவல்கள் துல்லியமானவை என்பதை உறுதிப்படுத்துகிறேன்.",
 
     intakeSubmittedTitle: "விவரங்கள் சமர்ப்பிக்கப்பட்டன!",
     intakeSubmittedSubtitle: "உங்கள் சுகாதார விவரங்கள் நேரடியாக மருத்துவரின் திரைக்கு அனுப்பப்பட்டுள்ளன.",
@@ -504,7 +584,21 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     extractingAiInfo: "AI ಮೂಲಕ ಮೆಡಿಕಲ್ ಟೈಮ್‌ಲೈನ್ ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ...",
     extractionComplete: "ವಿಶ್ಲೇಷಣೆ ಪೂರ್ಣಗೊಂಡಿದೆ",
     proceedToReview: "ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
-    skipForNow: "ಅಪ್‌ಲೋಡ್ ಬಿಟ್ಟು ಮುಂದುವರಿಯಿರಿ",
+    skipForNow: "ಇತರ ದಾಖಲೆಗಳಿಲ್ಲ / ಬಿಟ್ಟುಬಿಡಿ",
+    chooseFiles: "1 ರಿಂದ 4 ಫೈಲ್‌ಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+    uploadAnother: "+ ಇನ್ನೊಂದು ದಾಖಲೆಯನ್ನು ಸೇರಿಸಿ",
+    preparingUploader: "ಅಪ್‌ಲೋಡರ್ ಸಿದ್ಧವಾಗುತ್ತಿದೆ...",
+    tapToSelect: "ಫೋಟೋಗಳು ಅಥವಾ PDFಗಳನ್ನು ಆಯ್ಕೆ ಮಾಡಲು ಸ್ಪರ್ಶಿಸಿ",
+    tapToAddMore: "ಮತ್ತೊಂದು ಫೈಲ್ ಸೇರಿಸಲು ಸ್ಪರ್ಶಿಸಿ",
+    allowedFilesHint: "ಫೋಟೋಗಳು (16MB ವರೆಗೆ) · PDF (32MB ವರೆಗೆ)",
+    doctorRx: "ವೈದ್ಯರ ಚೀಟಿ",
+    doctorRxDesc: "ಹಳೆಯ ಔಷಧಿ ಚೀಟಿಗಳು",
+    labTests: "ಲ್ಯಾಬ್ ಪರೀಕ್ಷೆಗಳು",
+    labTestsDesc: "ರಕ್ತ, ಮೂತ್ರ ಪರೀಕ್ಷೆಗಳು",
+    dischargeSummary: "ಡಿಸ್ಚಾರ್ಜ್ ಸಾರಾಂಶ",
+    dischargeSummaryDesc: "ಆಸ್ಪತ್ರೆ ದಾಖಲೆಗಳು",
+    scansXrays: "ಸ್ಕ್ಯಾನ್ & ಎಕ್ಸ್-ರೇ",
+    scansXraysDesc: "ಫೋಟೋಗಳು ಅಥವಾ PDF",
 
     reviewTitle: "ನಿಮ್ಮ ಆರೋಗ್ಯ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
     reviewSubtitle: "ವೈದ್ಯರಿಗೆ ಸಲ್ಲಿಸುವ ಮೊದಲು ದಯವಿಟ್ಟು ನಿಮ್ಮ ಉತ್ತರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.",
@@ -515,11 +609,13 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
     ayurvedicProfile: "ಆಯುರ್ವೇದ ಆರೋಗ್ಯ ಪ್ರೊಫೈಲ್",
     confirmAndSubmit: "ದೃಢೀಕರಿಸಿ ವೈದ್ಯರಿಗೆ ಕಳುಹಿಸಿ",
     editAnswers: "ಉತ್ತರಗಳನ್ನು ಬದಲಾಯಿಸಿ",
+    somethingLooksWrong: "ಬದಲಾವಣೆಗಳನ್ನು ಮಾಡಲು ಬಯಸುತ್ತೇನೆ",
+    looksCorrectProceed: "ಎಲ್ಲವೂ ಸರಿಯಾಗಿದೆ — ಮುಂದುವರಿಯಿರಿ",
     patientConfirmationNote: "ನಾನು ಒದಗಿಸಿದ ಆರೋಗ್ಯ ಮಾಹಿತಿ ನಿಖರವಾಗಿದೆ ಎಂದು ನಾನು ದೃಢೀಕರಿಸುತ್ತೇನೆ.",
 
     intakeSubmittedTitle: "ವಿವರಗಳ ನೋಂದಣಿ ಪೂರ್ಣಗೊಂಡಿದೆ!",
     intakeSubmittedSubtitle: "ನಿಮ್ಮ ಆರೋಗ್ಯ ವಿವರಗಳನ್ನು ನೇರವಾಗಿ ವೈದ್ಯರ ಪರದೆಗೆ ಕಳುಹಿಸಲಾಗಿದೆ.",
-    yourTokenIs: "ನಿಮ್ಮ OPD ಟೋಕನ್ ಸಂಖ್ಯೆ",
+    yourTokenIs: "ನಿಮ್ಮ OPD ಟೋಕರ ಸಂಖ್ಯೆ",
     estimatedWait: "ಅಂದಾಜು ಕಾಯುವ ಸಮಯ: 5 - 10 ನಿಮಿಷಗಳು",
     waitingInstructions: "ನಿಮ್ಮ ಟೋಕನ್ ಸಂಖ್ಯೆಯನ್ನು ಕರೆಯುವವರೆಗೆ ದಯವಿಟ್ಟು ಕಾಯುವ ಕೋಣೆಯಲ್ಲಿ ಕುಳಿತುಕೊಳ್ಳಿ.",
     viewDashboard: "ರೋಗಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ವೀಕ್ಷಿಸಿ",

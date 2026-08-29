@@ -153,32 +153,32 @@ export default function DocumentsClient({
             <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
               <FileText className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-foreground">Doctor Rx</span>
-            <span className="text-[11px] text-muted-foreground">Past prescriptions</span>
+            <span className="text-xs font-bold text-foreground">{t.doctorRx}</span>
+            <span className="text-[11px] text-muted-foreground">{t.doctorRxDesc}</span>
           </div>
 
           <div className="p-3 rounded-2xl border border-border bg-card shadow-2xs flex flex-col items-center text-center gap-1.5">
             <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
               <FileCheck2 className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-foreground">Lab Tests</span>
-            <span className="text-[11px] text-muted-foreground">Blood, urine, panels</span>
+            <span className="text-xs font-bold text-foreground">{t.labTests}</span>
+            <span className="text-[11px] text-muted-foreground">{t.labTestsDesc}</span>
           </div>
 
           <div className="p-3 rounded-2xl border border-border bg-card shadow-2xs flex flex-col items-center text-center gap-1.5">
             <div className="p-2 rounded-xl bg-amber-50 text-amber-600">
               <ShieldCheck className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-foreground">Discharge Summary</span>
-            <span className="text-[11px] text-muted-foreground">Hospital records</span>
+            <span className="text-xs font-bold text-foreground">{t.dischargeSummary}</span>
+            <span className="text-[11px] text-muted-foreground">{t.dischargeSummaryDesc}</span>
           </div>
 
           <div className="p-3 rounded-2xl border border-border bg-card shadow-2xs flex flex-col items-center text-center gap-1.5">
             <div className="p-2 rounded-xl bg-purple-50 text-purple-600">
               <ImageIcon className="w-4 h-4" />
             </div>
-            <span className="text-xs font-bold text-foreground">Scans & X-Rays</span>
-            <span className="text-[11px] text-muted-foreground">Photos or PDFs</span>
+            <span className="text-xs font-bold text-foreground">{t.scansXrays}</span>
+            <span className="text-[11px] text-muted-foreground">{t.scansXraysDesc}</span>
           </div>
         </div>
 
@@ -192,10 +192,10 @@ export default function DocumentsClient({
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <span>{uploadingStatusText || "Uploading medical files..."}</span>
+                    <span>{uploadingStatusText || t.uploadingText}</span>
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    Uploading in progress. You can add more documents right after.
+                    {t.uploadingText}
                   </p>
                 </div>
               </div>
@@ -220,14 +220,14 @@ export default function DocumentsClient({
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
-                {justUploadedCount === 1 ? "1 document successfully uploaded!" : `${justUploadedCount} documents successfully uploaded!`} You can upload another file below or proceed.
+                {justUploadedCount} {t.uploadedDocuments}
               </span>
             </div>
             <button
               onClick={() => setJustUploadedCount(null)}
               className="text-emerald-700 hover:text-emerald-950 text-xs underline cursor-pointer"
             >
-              Dismiss
+              OK
             </button>
           </div>
         )}
@@ -246,14 +246,14 @@ export default function DocumentsClient({
             }}
             content={{
               label: documents.length > 0
-                ? "Tap to add another file (or select multiple files together)"
-                : "Tap to select 1 to 4 photos / PDFs or drag & drop here",
-              allowedContent: "Supports multiple files · Images up to 16MB · PDFs up to 32MB",
+                ? t.tapToAddMore
+                : t.tapToSelect,
+              allowedContent: t.allowedFilesHint,
               button({ ready }) {
                 if (ready) {
-                  return documents.length > 0 ? "+ Upload Another Document" : "Choose 1 to 4 Files";
+                  return documents.length > 0 ? t.uploadAnother : t.chooseFiles;
                 }
-                return "Preparing Uploader...";
+                return t.preparingUploader;
               },
             }}
             onUploadBegin={(fileName) => {

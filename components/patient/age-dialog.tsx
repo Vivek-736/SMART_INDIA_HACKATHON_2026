@@ -20,25 +20,26 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, UserCheck } from "lucide-react";
 import { savePatientProfileAction } from "@/app/patient/consent/age-actions";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 interface AgeDialogProps {
   /** Dialog shows when true; cannot be dismissed without completing */
   required: boolean;
   onComplete: () => void;
+  language?: string;
 }
 
 /**
- * AgeDialog (now a full Patient Profile dialog)
+ * AgeDialog (Patient Profile dialog)
  *
- * Collects age (number input) and gender (dropdown) on the patient's very
- * first visit. Both are required. Cannot be dismissed without submitting.
- * Stays open until both fields are saved to the database successfully.
+ * Collects age and gender on the patient's first visit.
  */
-export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
+export default function AgeDialog({ required, onComplete, language = "en" }: AgeDialogProps) {
   const [ageInput, setAgeInput] = useState("");
   const [gender, setGender] = useState<"male" | "female" | "">("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const t = getPatientTranslations(language);
 
   const handleSubmit = () => {
     const age = parseInt(ageInput, 10);
@@ -79,10 +80,10 @@ export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
             <UserCheck className="w-6 h-6 text-primary" />
           </div>
           <DialogTitle className="text-xl font-extrabold tracking-tight">
-            A couple of quick details
+            Patient Profile Details
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground leading-relaxed">
-            This helps your clinical team provide better care. You only need to do this once.
+            This helps your clinical team provide accurate diagnosis and care.
           </DialogDescription>
         </DialogHeader>
 
@@ -90,7 +91,7 @@ export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
           {/* Age */}
           <div className="space-y-1.5">
             <Label htmlFor="age-input" className="text-xs font-semibold text-foreground">
-              Your Age (years)
+              Age (years)
             </Label>
             <Input
               id="age-input"
@@ -133,12 +134,12 @@ export default function AgeDialog({ required, onComplete }: AgeDialogProps) {
           <Button
             onClick={handleSubmit}
             disabled={isPending}
-            className="w-full h-11 rounded-xl font-bold text-sm gap-2 cursor-pointer"
+            className="w-full h-11 rounded-xl font-bold text-sm gap-2 cursor-pointer shadow-xs"
           >
             {isPending ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Saving…</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t.loading}</>
             ) : (
-              "Continue to Consent"
+              t.continue
             )}
           </Button>
         </div>

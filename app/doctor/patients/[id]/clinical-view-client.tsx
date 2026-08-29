@@ -23,6 +23,9 @@ import {
   Leaf,
   FileCheck2,
   Download,
+  Clock,
+  HeartPulse,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -98,19 +101,94 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
   const isUrgent = priority === "URGENT" || priority === "EMERGENCY" || redFlags.length > 0;
   const isAyushDept = department.includes("AYUSH") || department.includes("Ayurveda") || patient.ayushModeEnabled;
 
-  // Helper to parse string or JSON data safely
+  // Helper to parse string or JSON data safely into structured view
   const formatFieldText = (val: unknown): string => {
-    if (!val) return "Not recorded during intake";
-    if (typeof val === "string") return val;
-    if (Array.isArray(val)) return val.join(", ");
+    if (!val) return "No prior history reported.";
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+        try {
+          const parsed = JSON.parse(trimmed);
+          return formatFieldText(parsed);
+        } catch {
+          return trimmed;
+        }
+      }
+      return trimmed;
+    }
+    if (Array.isArray(val)) {
+      if (val.length === 0) return "None reported";
+      return val.join(", ");
+    }
     if (typeof val === "object") {
-      const entries = Object.entries(val as Record<string, unknown>);
-      if (entries.length === 0) return "Not recorded";
+      const entries = Object.entries(val as Record<string, unknown>).filter(
+        ([, v]) => v !== null && v !== undefined && v !== ""
+      );
+      if (entries.length === 0) return "None reported";
       return entries
-        .map(([k, v]) => `${k.replace(/([A-Z])/g, " $1").toLowerCase()}: ${typeof v === "object" ? JSON.stringify(v) : v}`)
-        .join("; ");
+        .map(([k, v]) => {
+          const formattedKey = k
+            .replace(/([A-Z])/g, " $1")
+            .replace(/_/g, " ")
+            .trim();
+          const capKey = formattedKey.charAt(0).toUpperCase() + formattedKey.slice(1);
+          const valStr = typeof v === "object" ? JSON.stringify(v) : String(v);
+          return `${capKey}: ${valStr}`;
+        })
+        .join("\n• ");
     }
     return String(val);
+  };
+
+  // Helper to render medication tags
+  const renderMedicationBadges = (val: unknown) => {
+    let items: string[] = [];
+    if (Array.isArray(val)) {
+      items = val.map(String).filter(Boolean);
+    } else if (typeof val === "string") {
+      try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) items = parsed.map(String).filter(Boolean);
+        else items = val.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+      } catch {
+        items = val.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
+      }
+    } else if (val && typeof val === "object") {
+      items = Object.values(val as Record<string, unknown>).map(String).filter(Boolean);
+    }
+
+    if (items.length === 0 || (items.length === 1 && items[0].toLowerCase().includes("none"))) {
+      return (
+        <span className="text-xs text-muted-foreground italic">
+          No current medications or known drug allergies reported.
+        </span>
+      );
+    }
+
+    return (
+      <div className="flex flex-wrap gap-2 pt-1">
+        {items.map((item, idx) => {
+          const isAllergy = item.toLowerCase().includes("allerg") || item.toLowerCase().includes("reaction");
+          return (
+            <span
+              key={idx}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold shadow-2xs border ${
+                isAllergy
+                  ? "bg-rose-50 text-rose-800 border-rose-200"
+                  : "bg-indigo-50 text-primary border-primary/20"
+              }`}
+            >
+              {isAllergy ? (
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+              ) : (
+                <Pill className="w-3.5 h-3.5 text-primary shrink-0" />
+              )}
+              <span>{item}</span>
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -190,6 +268,10 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
                 <span>&bull;</span>
                 <span>
                   Dept: <strong className="text-primary font-semibold">{department}</strong>
+                </span>
+                <span>&bull;</span>
+                <span>
+                  Language: <strong className="uppercase text-foreground">{patient.language || "EN"}</strong>
                 </span>
               </div>
             </div>
@@ -277,71 +359,105 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
       )}
 
       {/* Executive 1-Page Physician Briefing Card */}
-      {clinicalHistory?.summaryText && (
-        <div className="p-5 sm:p-6 rounded-3xl border border-primary/20 bg-linear-to-br from-indigo-50/40 via-card to-card shadow-xs space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              <h2 className="text-sm font-bold text-foreground">
-                AI Physician Intake Briefing
-              </h2>
+      <div className="p-5 sm:p-6 rounded-3xl border-2 border-primary/30 bg-linear-to-br from-indigo-50/50 via-card to-card shadow-xs space-y-3.5">
+        <div className="flex items-center justify-between border-b border-primary/10 pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
             </div>
-            {clinicalHistory.isConfirmedByPatient && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                Verified by Patient
-              </span>
-            )}
+            <div>
+              <h2 className="text-sm font-extrabold text-foreground flex items-center gap-2">
+                AI Physician Intake Briefing
+                <span className="text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-md">
+                  English Synthesis
+                </span>
+              </h2>
+              <p className="text-[11px] text-muted-foreground">
+                Consolidated clinical narrative synthesized from patient interview and prior records
+              </p>
+            </div>
           </div>
-          <p className="text-xs sm:text-sm text-foreground/90 leading-relaxed font-medium">
-            {clinicalHistory.summaryText}
-          </p>
+          {clinicalHistory?.isConfirmedByPatient && (
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-1 rounded-lg">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
+              Verified by Patient
+            </span>
+          )}
         </div>
-      )}
+
+        <p className="text-xs sm:text-sm text-foreground/95 leading-relaxed font-medium whitespace-pre-wrap">
+          {clinicalHistory?.summaryText ||
+            `Patient presented to ${department} OPD with symptoms recorded during guided intake. Review individual history modules and conversational transcript below.`}
+        </p>
+      </div>
 
       {/* Main Clinical History Structured Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Card 1: Chief Complaint */}
-        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <Thermometer className="w-4 h-4" />
-            <h3>Chief Presenting Complaint</h3>
+        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-bold text-sm mb-2">
+              <Thermometer className="w-4 h-4" />
+              <h3>Chief Presenting Complaint</h3>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/70 text-xs sm:text-sm text-foreground leading-relaxed font-semibold">
+              {formatFieldText(clinicalHistory?.chiefComplaint)}
+            </div>
           </div>
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs text-foreground leading-relaxed font-medium">
-            {formatFieldText(clinicalHistory?.chiefComplaint)}
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1">
+            <Info className="w-3.5 h-3.5 text-primary" />
+            <span>Primary symptom reported at intake entry</span>
           </div>
         </div>
 
         {/* Card 2: History of Present Illness (HPI) */}
-        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <Activity className="w-4 h-4" />
-            <h3>History of Present Illness (HPI)</h3>
+        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-bold text-sm mb-2">
+              <Activity className="w-4 h-4" />
+              <h3>History of Present Illness (HPI)</h3>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/70 text-xs sm:text-sm text-foreground leading-relaxed font-medium whitespace-pre-wrap">
+              {formatFieldText(clinicalHistory?.hpi)}
+            </div>
           </div>
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs text-foreground leading-relaxed font-medium">
-            {formatFieldText(clinicalHistory?.hpi)}
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1">
+            <Clock className="w-3.5 h-3.5 text-primary" />
+            <span>Progression, severity, triggers & associated symptoms</span>
           </div>
         </div>
 
         {/* Card 3: Past Medical & Surgical History */}
-        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <Calendar className="w-4 h-4" />
-            <h3>Past Medical & Surgical History</h3>
+        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-bold text-sm mb-2">
+              <Calendar className="w-4 h-4" />
+              <h3>Past Medical & Surgical History</h3>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/70 text-xs sm:text-sm text-foreground leading-relaxed font-medium whitespace-pre-wrap">
+              {formatFieldText(clinicalHistory?.pastMedicalHistory)}
+            </div>
           </div>
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs text-foreground leading-relaxed font-medium">
-            {formatFieldText(clinicalHistory?.pastMedicalHistory)}
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1">
+            <HeartPulse className="w-3.5 h-3.5 text-primary" />
+            <span>Chronic conditions, prior hospitalizations & procedures</span>
           </div>
         </div>
 
         {/* Card 4: Active Medications & Allergies */}
-        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3">
-          <div className="flex items-center gap-2 text-primary font-bold text-sm">
-            <Pill className="w-4 h-4" />
-            <h3>Current Medications & Known Allergies</h3>
+        <div className="p-5 rounded-3xl border border-border bg-card shadow-2xs space-y-3 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 text-primary font-bold text-sm mb-2">
+              <Pill className="w-4 h-4" />
+              <h3>Current Medications & Known Allergies</h3>
+            </div>
+            <div className="p-4 rounded-2xl bg-secondary/40 border border-border/70 text-xs space-y-2">
+              {renderMedicationBadges(clinicalHistory?.medications)}
+            </div>
           </div>
-          <div className="p-3.5 rounded-2xl bg-secondary/50 border border-border/60 text-xs text-foreground leading-relaxed font-medium">
-            {formatFieldText(clinicalHistory?.medications)}
+          <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 pt-1">
+            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            <span>Cross-referenced against reported OTC & prescription drugs</span>
           </div>
         </div>
       </div>
@@ -448,65 +564,39 @@ export default function ClinicalViewClient({ data }: ClinicalViewClientProps) {
         </button>
 
         {showTranscript && (
-          <div className="p-4 sm:p-6 border-t border-border/80 space-y-3 bg-secondary/20 max-h-[480px] overflow-y-auto">
-            {interviewMessages.length === 0 ? (
-              <p className="text-xs text-muted-foreground text-center py-4">
-                No conversational interview messages recorded for this session.
-              </p>
-            ) : (
-              interviewMessages.map((msg) => (
-                <div
-                  key={msg.id}
-                  className={`flex flex-col ${
-                    msg.sender === "PATIENT" ? "items-end" : "items-start"
-                  }`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-2xl p-3.5 text-xs shadow-2xs space-y-1 ${
-                      msg.sender === "PATIENT"
-                        ? "bg-primary text-primary-foreground rounded-tr-xs"
-                        : "bg-card border border-border text-foreground rounded-tl-xs"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3 text-[10.5px] opacity-75">
-                      <span className="font-bold">{msg.sender === "PATIENT" ? "Patient Answer" : "Doctor AI Question"}</span>
-                      <span>{msg.timestamp}</span>
-                    </div>
-                    <p className="leading-relaxed whitespace-pre-wrap">{msg.textContent}</p>
-                  </div>
+          <div className="p-4 sm:p-6 border-t border-border bg-secondary/20 space-y-4 max-h-[500px] overflow-y-auto">
+            {interviewMessages.map((msg, idx) => (
+              <div
+                key={msg.id || idx}
+                className={`p-4 rounded-2xl border text-xs space-y-1.5 ${
+                  msg.sender === "PATIENT"
+                    ? "bg-card border-primary/20 ml-4 sm:ml-8"
+                    : "bg-secondary/60 border-border mr-4 sm:mr-8"
+                }`}
+              >
+                <div className="flex items-center justify-between font-bold">
+                  <span className={msg.sender === "PATIENT" ? "text-primary" : "text-foreground"}>
+                    {msg.sender === "PATIENT" ? `Patient (${patient.name})` : "PreConsult Clinical Engine"}
+                  </span>
+                  <span className="text-[10.5px] font-normal text-muted-foreground">{msg.timestamp}</span>
                 </div>
-              ))
-            )}
+                <p className="text-foreground/90 whitespace-pre-wrap leading-relaxed">{msg.textContent}</p>
+                {msg.extractedPills && msg.extractedPills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {msg.extractedPills.map((pill, pIdx) => (
+                      <span
+                        key={pIdx}
+                        className="px-2 py-0.5 rounded-md bg-accent text-primary text-[10.5px] font-semibold"
+                      >
+                        {pill}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         )}
-      </div>
-
-      {/* Bottom Action Footer */}
-      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4">
-        <Link href="/doctor/dashboard">
-          <Button variant="outline" className="rounded-xl border-border text-xs font-semibold cursor-pointer">
-            &larr; Back to OPD Dashboard
-          </Button>
-        </Link>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            onClick={() => router.push(`/doctor/patients/${visitId}/timeline`)}
-            className="w-full sm:w-auto rounded-xl border-border text-xs font-semibold gap-1.5 py-5 px-5 cursor-pointer"
-          >
-            <FileCheck2 className="w-4 h-4 text-primary" />
-            <span>Review Attached Documents ({documentsCount}) &rarr;</span>
-          </Button>
-
-          <Button
-            onClick={() => router.push(`/doctor/patients/${visitId}/review`)}
-            className="w-full sm:w-auto rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-2 py-5 px-6 shadow-md cursor-pointer"
-          >
-            <span>Proceed to Digital Prescription</span>
-            <ArrowRight className="w-4 h-4" />
-          </Button>
-        </div>
       </div>
     </div>
   );
