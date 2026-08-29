@@ -21,10 +21,7 @@ import {
   UploadCloud,
   Sparkles,
   Clock,
-  ShieldCheck,
-  UserCheck,
   Stethoscope,
-  FolderOpen,
   LayoutDashboard,
   Pill,
   CheckCircle2,
@@ -34,6 +31,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PrescriptionAudioPlayer from "@/components/patient/prescription-audio-player";
+import PatientLanguageSwitcher from "@/components/patient/patient-language-switcher";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 export default async function PatientDashboardPage() {
   const patientData = await getOrSyncCurrentPatient();
@@ -43,9 +42,11 @@ export default async function PatientDashboardPage() {
   }
 
   const { user, patient } = patientData;
+  const lang = patient.languagePreference || "en";
+  const t = getPatientTranslations(lang);
 
-  // 1. Fetch current/latest visit
-  const latestVisit = await db.query.visits.findFirst({
+  // 1. Fetch Current Active Visit
+  const [latestVisit] = await db.query.visits.findMany({
     where: eq(visits.patientId, patient.id),
     orderBy: [desc(visits.createdAt)],
   });
@@ -133,15 +134,15 @@ export default async function PatientDashboardPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "READY_FOR_DOCTOR":
-        return { label: "Ready for Doctor", color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+        return { label: t.waitingForDoctor, color: "bg-emerald-50 text-emerald-700 border-emerald-200" };
       case "INTAKE_IN_PROGRESS":
-        return { label: "Intake in Progress", color: "bg-amber-50 text-amber-700 border-amber-200" };
+        return { label: t.activeVisit, color: "bg-amber-50 text-amber-700 border-amber-200" };
       case "IN_CONSULTATION":
-        return { label: "In Active Consultation", color: "bg-indigo-50 text-indigo-700 border-indigo-200" };
+        return { label: t.inConsultation, color: "bg-indigo-50 text-indigo-700 border-indigo-200" };
       case "COMPLETED":
-        return { label: "Consultation Completed", color: "bg-emerald-50 text-emerald-700 border-emerald-300" };
+        return { label: t.prescriptionReady, color: "bg-emerald-50 text-emerald-700 border-emerald-300" };
       default:
-        return { label: "Waiting in Queue", color: "bg-blue-50 text-blue-700 border-blue-200" };
+        return { label: t.waitingForDoctor, color: "bg-blue-50 text-blue-700 border-blue-200" };
     }
   };
 
@@ -163,7 +164,7 @@ export default async function PatientDashboardPage() {
               <span className="text-lg font-bold tracking-tight text-foreground flex items-center gap-1.5">
                 PreConsult
                 <span className="inline-flex items-center rounded-md bg-accent px-1.5 py-0.2 text-[11px] font-semibold text-primary">
-                  Patient Portal
+                  {t.patientPortal}
                 </span>
               </span>
             </Link>
@@ -173,11 +174,14 @@ export default async function PatientDashboardPage() {
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-accent text-primary transition-colors"
               >
                 <LayoutDashboard className="w-4 h-4" />
-                <span>Dashboard</span>
+                <span>{t.myHealthDashboard}</span>
               </Link>
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            {/* Language Switcher Dropdown */}
+            <PatientLanguageSwitcher currentLanguage={lang} />
+
             <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-border bg-secondary text-xs text-secondary-foreground font-medium">
               <Stethoscope className="w-3.5 h-3.5 text-primary" />
               <span>OPD Online</span>
@@ -200,15 +204,15 @@ export default async function PatientDashboardPage() {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
-                  Welcome, {user.firstName || "Patient"}
+                  {t.welcomeBack}, {user.firstName || "Patient"}
                 </h1>
                 <span className="inline-flex items-center rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-primary">
                   Verified Patient
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-muted-foreground">
-                UHID: <span className="font-mono font-medium text-foreground">{patient.uhid || "PENDING"}</span> &bull; Preferred Language:{" "}
-                <span className="capitalize font-medium text-foreground">{patient.languagePreference}</span>
+                {t.uhid}: <span className="font-mono font-medium text-foreground">{patient.uhid || "PENDING"}</span> &bull; {t.language}:{" "}
+                <span className="capitalize font-medium text-foreground">{lang.toUpperCase()}</span>
               </p>
             </div>
 
@@ -216,17 +220,17 @@ export default async function PatientDashboardPage() {
               <Link href="/patient/consent">
                 <Button className="bg-primary text-primary-foreground hover:bg-primary/90 gap-2 h-10 px-5 font-semibold shadow-xs cursor-pointer">
                   <Sparkles className="w-4 h-4" />
-                  <span>Start New Intake</span>
+                  <span>{t.startNewIntake}</span>
                 </Button>
               </Link>
             </div>
           </div>
 
-          {/* Active Visit Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column (2 Cols): Active Visit or Finalized Prescription */}
+          {/* Main 2-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Column (2 Cols): Active Visit & Medical History */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Doctor Review / Prescription Card if Visit is COMPLETED */}
+              {/* Completed Consultation Prescription Card */}
               {latestVisit?.status === "COMPLETED" && completedDoctorReview ? (
                 <div className="bg-card border-2 border-emerald-300 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5 bg-linear-to-br from-emerald-50/30 via-card to-card">
                   {/* Card Header */}
@@ -238,15 +242,15 @@ export default async function PatientDashboardPage() {
                       <div>
                         <div className="flex items-center gap-2">
                           <h2 className="text-lg font-bold text-foreground">
-                            Doctor&apos;s Prescription & Advice
+                            {t.doctorPrescriptionAndAdvice}
                           </h2>
                           <span className="inline-flex items-center gap-1 rounded-md bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[11px] font-bold">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Signed by Dr. {attendingPhysicianName}
+                            {t.signedBy} Dr. {attendingPhysicianName}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          {attendingDoctorRoom} &bull; Consulted on {new Date(completedDoctorReview.createdAt).toLocaleDateString()}
+                          {attendingDoctorRoom} &bull; {new Date(completedDoctorReview.createdAt).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -259,7 +263,7 @@ export default async function PatientDashboardPage() {
                         title="Download standard ABDM FHIR R4 interoperable health record"
                       >
                         <Download className="w-3.5 h-3.5 text-emerald-700" />
-                        <span>Download ABDM / FHIR Record</span>
+                        <span>{t.downloadFhir}</span>
                       </a>
                     </div>
                   </div>
@@ -270,14 +274,14 @@ export default async function PatientDashboardPage() {
                     prescriptions={reviewPrescriptions}
                     doctorNotes={completedDoctorReview.doctorNotes}
                     followUpDate={parsedFollowUp || null}
-                    defaultLanguage={patient.languagePreference || "en"}
+                    defaultLanguage={lang}
                   />
 
                   {/* Confirmed Diagnosis */}
                   {parsedDiagnosis && (
                     <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-200/80 text-xs">
                       <span className="text-emerald-900 font-bold block mb-0.5 text-[11px] uppercase tracking-wide">
-                        Confirmed Clinical Diagnosis:
+                        {t.confirmedDiagnosis}:
                       </span>
                       <p className="text-sm font-extrabold text-emerald-950">
                         {parsedDiagnosis}
@@ -288,198 +292,154 @@ export default async function PatientDashboardPage() {
                   {/* Prescribed Medications Table */}
                   {reviewPrescriptions.length > 0 && (
                     <div className="space-y-2.5">
-                      <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
-                        <Pill className="w-4 h-4 text-primary" />
-                        <span>Prescribed Medications (Rx)</span>
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5 uppercase tracking-wide">
+                        <Pill className="w-3.5 h-3.5 text-primary" />
+                        <span>{t.prescribedMedications}</span>
                       </h3>
-
-                      <div className="space-y-2">
-                        {reviewPrescriptions.map((med, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3 rounded-2xl bg-secondary/40 border border-border/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
-                          >
-                            <div>
-                              <span className="font-extrabold text-foreground text-sm">
-                                {med.medicineName}
-                              </span>
-                              <p className="text-muted-foreground text-[11px] pt-0.5">
-                                {[med.dosage, med.instructions].filter(Boolean).join(" &bull; ")}
-                              </p>
-                            </div>
-
-                            <div className="flex items-center gap-2 shrink-0">
-                              <span className="px-2.5 py-1 rounded-lg bg-primary/10 text-primary font-bold text-xs">
-                                {med.frequency}
-                              </span>
-                              {med.duration && (
-                                <span className="px-2.5 py-1 rounded-lg bg-secondary text-foreground font-semibold text-xs">
-                                  {med.duration}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        ))}
+                      <div className="overflow-x-auto rounded-2xl border border-border bg-card">
+                        <table className="w-full text-left text-xs">
+                          <thead className="bg-secondary/60 text-muted-foreground font-semibold text-[11px] uppercase border-b border-border">
+                            <tr>
+                              <th className="py-2.5 px-3.5">Medicine</th>
+                              <th className="py-2.5 px-3">Frequency</th>
+                              <th className="py-2.5 px-3">Duration</th>
+                              <th className="py-2.5 px-3">Instructions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-border/60">
+                            {reviewPrescriptions.map((p, idx) => (
+                              <tr key={idx} className="hover:bg-secondary/30 transition-colors">
+                                <td className="py-2.5 px-3.5 font-bold text-foreground">
+                                  {p.medicineName}
+                                  {p.dosage && (
+                                    <span className="text-[11px] font-normal text-muted-foreground ml-1.5">
+                                      ({p.dosage})
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2.5 px-3 font-semibold text-primary">{p.frequency}</td>
+                                <td className="py-2.5 px-3 text-muted-foreground">{p.duration}</td>
+                                <td className="py-2.5 px-3 text-muted-foreground">{p.instructions || "—"}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
                   )}
 
                   {/* Doctor Notes & Advice */}
                   {completedDoctorReview.doctorNotes && (
-                    <div className="p-3.5 rounded-2xl bg-secondary/30 border border-border/70 text-xs space-y-1">
-                      <span className="font-bold text-foreground block">
-                        Physician Advice & Lifestyle Notes:
+                    <div className="p-4 rounded-2xl bg-secondary/40 border border-border text-xs space-y-1">
+                      <span className="font-bold text-foreground block text-[11px] uppercase tracking-wide">
+                        {t.doctorAdviceNotes}:
                       </span>
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                      <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">
                         {completedDoctorReview.doctorNotes}
                       </p>
                     </div>
                   )}
 
-                  {/* Follow-up reminder */}
+                  {/* Follow-up Note */}
                   {parsedFollowUp && (
-                    <div className="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200 text-xs flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-indigo-900 font-semibold">
-                        <Calendar className="w-4 h-4 text-primary" />
-                        <span>Recommended Follow-up Visit:</span>
-                      </div>
-                      <span className="font-mono font-bold text-indigo-950">
-                        {new Date(parsedFollowUp).toLocaleDateString()}
+                    <div className="flex items-center gap-2 text-xs font-medium text-emerald-800 bg-emerald-50 px-3.5 py-2.5 rounded-xl border border-emerald-200">
+                      <Calendar className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span>
+                        {t.followUpVisit}: <strong>{new Date(parsedFollowUp).toLocaleDateString()}</strong>
                       </span>
                     </div>
                   )}
                 </div>
-              ) : (
-                /* Ongoing or Active Visit Card */
-                <div className="bg-card border border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-accent text-primary flex items-center justify-center">
-                        <HeartPulse className="w-5 h-5" />
+              ) : null}
+
+              {/* Ongoing Active Visit Card (If not completed) */}
+              {latestVisit && latestVisit.status !== "COMPLETED" && (
+                <div className="bg-card border border-border rounded-3xl p-6 sm:p-7 shadow-xs space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-base font-bold text-foreground">
+                          {t.activeVisit}
+                        </h2>
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold border ${getStatusBadge(latestVisit.status).color}`}
+                        >
+                          {getStatusBadge(latestVisit.status).label}
+                        </span>
                       </div>
-                      <div>
-                        <h2 className="text-base font-bold text-foreground">Today&apos;s OPD Visit</h2>
-                        <p className="text-xs text-muted-foreground">Current consultation queue & status</p>
-                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t.tokenNumber}: <strong className="text-foreground">#{latestVisit.queueNumber || 1}</strong> &bull; Dept:{" "}
+                        <strong className="text-foreground">{latestVisit.department}</strong>
+                      </p>
                     </div>
 
-                    {latestVisit ? (
-                      <span
-                        className={`text-xs font-semibold px-3 py-1 rounded-full border ${
-                          getStatusBadge(latestVisit.status).color
-                        }`}
-                      >
-                        {getStatusBadge(latestVisit.status).label}
-                      </span>
-                    ) : (
-                      <span className="text-xs font-semibold px-3 py-1 rounded-full border bg-secondary text-secondary-foreground">
-                        No Active Visit
-                      </span>
-                    )}
-                  </div>
-
-                  {latestVisit ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-secondary/50 rounded-2xl p-4 border border-border/50">
-                        <div>
-                          <span className="text-[11px] text-muted-foreground block">Queue No.</span>
-                          <span className="text-xl font-extrabold text-foreground font-mono">
-                            #{latestVisit.queueNumber || 1}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[11px] text-muted-foreground block">Department</span>
-                          <span className="text-xs font-bold text-foreground">{latestVisit.department}</span>
-                        </div>
-                        <div>
-                          <span className="text-[11px] text-muted-foreground block">Priority</span>
-                          <span className="text-xs font-bold text-foreground capitalize">
-                            {latestVisit.priority.toLowerCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[11px] text-muted-foreground block">Intake Mode</span>
-                          <span className="text-xs font-bold text-foreground">
-                            {latestVisit.isKiosk ? "Kiosk Station" : "Online Intake"}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-1">
-                        <p className="text-xs text-muted-foreground">
-                          Last updated {new Date(latestVisit.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                        </p>
-                        <Link href="/patient/consent">
-                          <Button variant="outline" size="sm" className="gap-1.5 text-xs rounded-xl border-border hover:border-primary cursor-pointer">
-                            <span>Resume / Review Intake</span>
+                    <div>
+                      {latestVisit.status === "INTAKE_IN_PROGRESS" && (
+                        <Link href="/patient/interview">
+                          <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 h-9 rounded-xl font-semibold cursor-pointer">
+                            <span>{t.resumeIntake}</span>
                             <ArrowRight className="w-3.5 h-3.5" />
                           </Button>
                         </Link>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Step Progress Tracker */}
+                  <div className="space-y-3">
+                    <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider block">
+                      {t.visitTimeline}
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                      {/* Step 1: Consent */}
+                      <div className="p-3.5 rounded-2xl bg-secondary/70 border border-border/80 text-left space-y-1">
+                        <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold mb-1">
+                          ✓
+                        </div>
+                        <span className="text-xs font-bold text-foreground block">1. Consent</span>
+                        <p className="text-[11px] text-muted-foreground">Language & terms agreed</p>
+                      </div>
+
+                      {/* Step 2: Intake */}
+                      <div className={`p-3.5 rounded-2xl border text-left space-y-1 ${latestVisit.status !== "INTAKE_IN_PROGRESS" ? "bg-secondary/70 border-border/80" : "bg-primary/5 border-primary/30"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mb-1 ${latestVisit.status !== "INTAKE_IN_PROGRESS" ? "bg-emerald-100 text-emerald-800" : "bg-primary text-primary-foreground"}`}>
+                          {latestVisit.status !== "INTAKE_IN_PROGRESS" ? "✓" : "2"}
+                        </div>
+                        <span className="text-xs font-bold text-foreground block">2. Intake</span>
+                        <p className="text-[11px] text-muted-foreground">Symptoms & history</p>
+                      </div>
+
+                      {/* Step 3: Documents */}
+                      <div className={`p-3.5 rounded-2xl border text-left space-y-1 ${latestVisit.status === "READY_FOR_DOCTOR" || latestVisit.status === "IN_CONSULTATION" ? "bg-secondary/70 border-border/80" : "bg-card border-border/50 opacity-75"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mb-1 ${patientDocs.length > 0 ? "bg-emerald-100 text-emerald-800" : "bg-secondary text-foreground"}`}>
+                          {patientDocs.length > 0 ? "✓" : "3"}
+                        </div>
+                        <span className="text-xs font-bold text-foreground block">3. Documents</span>
+                        <p className="text-[11px] text-muted-foreground">{patientDocs.length} files attached</p>
+                      </div>
+
+                      {/* Step 4: Doctor */}
+                      <div className={`p-3.5 rounded-2xl border text-left space-y-1 ${latestVisit.status === "IN_CONSULTATION" ? "bg-secondary/70 border-border/80" : "bg-card border-border/50 opacity-75"}`}>
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mb-1 ${latestVisit.status === "IN_CONSULTATION" ? "bg-emerald-100 text-emerald-800" : "bg-secondary text-foreground"}`}>
+                          {latestVisit.status === "IN_CONSULTATION" ? "✓" : "4"}
+                        </div>
+                        <span className="text-xs font-bold text-foreground block">4. Doctor</span>
+                        <p className="text-[11px] text-muted-foreground">Consultation & Rx</p>
                       </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 space-y-3 bg-secondary/30 rounded-2xl border border-dashed border-border p-6">
-                      <Clock className="w-8 h-8 text-muted-foreground mx-auto" />
-                      <h3 className="text-base font-bold text-foreground">No active consultation in progress</h3>
-                      <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                        Begin your guided clinical intake before meeting your doctor. Your responses will be structured into a clinical summary for the physician.
-                      </p>
-                      <div className="pt-2">
-                        <Link href="/patient/consent">
-                          <Button className="bg-primary text-primary-foreground hover:bg-primary/90 text-xs h-9 rounded-xl cursor-pointer">
-                            Launch Clinical Intake
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
               )}
 
-              {/* 4-Step Intake Process Tracker */}
-              <div className="bg-card border border-border rounded-3xl p-6 shadow-xs">
-                <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  <span>How PreConsult Intake Works</span>
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div className="p-3.5 rounded-2xl border border-border bg-background space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">01</span>
-                      <ShieldCheck className="w-4 h-4 text-primary" />
-                    </div>
-                    <h4 className="text-xs font-bold text-foreground">Consent & Language</h4>
-                    <p className="text-[11px] text-muted-foreground">Choose regional language and audio prompts.</p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl border border-border bg-background space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">02</span>
-                      <HeartPulse className="w-4 h-4 text-primary" />
-                    </div>
-                    <h4 className="text-xs font-bold text-foreground">Adaptive Questions</h4>
-                    <p className="text-[11px] text-muted-foreground">Answer symptoms via voice or touch.</p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl border border-border bg-background space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">03</span>
-                      <UploadCloud className="w-4 h-4 text-primary" />
-                    </div>
-                    <h4 className="text-xs font-bold text-foreground">Upload Reports</h4>
-                    <p className="text-[11px] text-muted-foreground">Attach prior prescriptions and lab tests.</p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl border border-border bg-background space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-primary">04</span>
-                      <Stethoscope className="w-4 h-4 text-primary" />
-                    </div>
-                    <h4 className="text-xs font-bold text-foreground">Doctor Consultation</h4>
-                    <p className="text-[11px] text-muted-foreground">Doctor reviews history & issues digital Rx.</p>
-                  </div>
+              {/* Next Steps Prompt */}
+              <div className="bg-secondary/40 border border-border/80 rounded-3xl p-6 space-y-3">
+                <div className="flex items-center gap-2">
+                  <HeartPulse className="w-5 h-5 text-primary" />
+                  <h3 className="text-sm font-bold text-foreground">How PreConsult Works</h3>
                 </div>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Completing your pre-consultation intake allows the doctor to review your medical history and previous reports in structured form before you step into the consultation room, saving you valuable time.
+                </p>
               </div>
             </div>
 
@@ -491,7 +451,7 @@ export default async function PatientDashboardPage() {
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-2">
                       <FileText className="w-4 h-4 text-primary" />
-                      <h3 className="text-sm font-bold text-foreground">Medical Records</h3>
+                      <h3 className="text-sm font-bold text-foreground">{t.medicalRecords}</h3>
                     </div>
                     <span className="text-xs font-semibold text-muted-foreground">
                       {patientDocs.length} files
@@ -503,61 +463,65 @@ export default async function PatientDashboardPage() {
                       {patientDocs.map((doc) => (
                         <div
                           key={doc.id}
-                          className="p-3 rounded-2xl border border-border bg-secondary/30 flex items-center justify-between text-xs"
+                          className="flex items-center justify-between p-3 rounded-2xl bg-secondary/50 border border-border/70 text-xs"
                         >
-                          <div className="truncate mr-2">
-                            <span className="font-medium text-foreground block truncate">{doc.fileName}</span>
-                            <span className="text-[10px] text-muted-foreground">
-                              {new Date(doc.uploadedAt).toLocaleDateString()}
-                            </span>
+                          <div className="flex items-center gap-2.5 truncate">
+                            <FileText className="w-4 h-4 text-primary shrink-0" />
+                            <span className="truncate font-medium text-foreground">{doc.fileName}</span>
                           </div>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-accent text-primary">
+                          <span className="text-[10.5px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md shrink-0">
                             {doc.processingStatus}
                           </span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div className="text-center py-6 border border-dashed border-border rounded-2xl">
-                      <FolderOpen className="w-6 h-6 text-muted-foreground mx-auto mb-1.5" />
-                      <p className="text-xs text-muted-foreground">No documents uploaded yet</p>
-                    </div>
+                    <p className="text-xs text-muted-foreground py-4 text-center">
+                      {t.noRecordsYet}
+                    </p>
                   )}
                 </div>
 
                 <div className="pt-4 border-t border-border mt-4">
-                  <Link href="/patient/documents" className="w-full block">
-                    <Button variant="outline" size="sm" className="w-full text-xs gap-1.5 rounded-xl border-border hover:border-primary cursor-pointer">
-                      <UploadCloud className="w-3.5 h-3.5" />
-                      <span>Upload Prescriptions / Labs</span>
+                  <Link href="/patient/documents">
+                    <Button variant="outline" size="sm" className="w-full justify-center gap-2 rounded-xl text-xs font-semibold cursor-pointer">
+                      <UploadCloud className="w-4 h-4 text-primary" />
+                      <span>{t.uploadNewRecord}</span>
                     </Button>
                   </Link>
                 </div>
               </div>
+
               {/* Past History Snippet */}
               <div className="bg-card border border-border rounded-3xl p-6 shadow-xs">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    <UserCheck className="w-4 h-4 text-primary" />
-                    <h3 className="text-sm font-bold text-foreground">Past Summaries</h3>
+                    <Clock className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-bold text-foreground">{t.pastConsultations}</h3>
                   </div>
                 </div>
+
                 {pastHistories.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {pastHistories.map((hist) => (
-                      <div key={hist.id} className="p-3 rounded-2xl border border-border bg-secondary/20 space-y-1">
-                        <span className="text-[11px] font-bold text-foreground block">
-                          {hist.summaryText?.slice(0, 50) || "Intake Record"}...
-                        </span>
-                        <span className="text-[10px] text-muted-foreground block">
-                          Confirmed: {new Date(hist.createdAt).toLocaleDateString()}
-                        </span>
+                  <div className="space-y-3">
+                    {pastHistories.map((h) => (
+                      <div key={h.id} className="p-3 rounded-2xl bg-secondary/40 border border-border/60 text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-foreground">
+                            {typeof h.chiefComplaint === "string" ? h.chiefComplaint : "Consultation Intake"}
+                          </span>
+                          <span className="text-[10.5px] text-muted-foreground">
+                            {new Date(h.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground line-clamp-2">
+                          {h.summaryText || "Structured pre-consultation summary recorded."}
+                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-muted-foreground py-2 leading-relaxed">
-                    Completed intakes will appear here for you to reference before follow-ups.
+                  <p className="text-xs text-muted-foreground text-center py-2">
+                    No past consultation records.
                   </p>
                 )}
               </div>

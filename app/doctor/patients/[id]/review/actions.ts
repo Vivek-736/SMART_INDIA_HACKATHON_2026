@@ -146,6 +146,7 @@ export async function submitDoctorReviewAction(payload: SubmitDoctorReviewPayloa
       prescriptions: validPrescriptions,
       clinicalNotes: clinicalNotesFull,
       followUpDate: payload.followUpDate || null,
+      languagePreference: patientRow?.languagePreference || "en",
     });
   }
 
