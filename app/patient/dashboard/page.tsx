@@ -194,7 +194,7 @@ export default async function PatientDashboardPage() {
           <PatientLanguageSwitcher currentLanguage={lang} />
 
           {isIntakeIncomplete ? (
-            <Link href="/patient/interview">
+            <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`}>
               <Button className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs gap-2 cursor-pointer text-xs sm:text-sm py-5 px-5">
                 <Sparkles className="w-4 h-4" />
                 <span>{t.resumeIntake}</span>
@@ -374,7 +374,7 @@ export default async function PatientDashboardPage() {
                       <span className="text-amber-800/90">{t.completeIntakeDesc}</span>
                     </div>
                   </div>
-                  <Link href="/patient/interview" className="shrink-0">
+                  <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`} className="shrink-0">
                     <Button size="sm" className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-2xs">
                       {t.continueIntake}
                     </Button>
