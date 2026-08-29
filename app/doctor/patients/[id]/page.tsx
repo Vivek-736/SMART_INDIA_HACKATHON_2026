@@ -1,30 +1,29 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getOrSyncCurrentDoctor } from "@/lib/auth/sync-doctor";
 import { db } from "@/db";
-import {
-  visits,
-  patients,
-  users,
-  clinicalHistories,
-  medicalDocuments,
-  redFlags,
-  interviewSessions,
+import { 
+  visits, 
+  patients, 
+  users, 
+  clinicalHistories, 
+  medicalDocuments, 
+  redFlags, 
+  interviewSessions, 
   interviewMessages,
-  doctors,
+  doctors
 } from "@/db/schema";
 import { eq, asc } from "drizzle-orm";
 import ClinicalViewClient, { ClinicalPatientViewData } from "./clinical-view-client";
 
-interface DoctorPatientPageProps {
+interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function DoctorPatientPage({ params }: DoctorPatientPageProps) {
+export default async function DoctorPatientClinicalPage({ params }: PageProps) {
   const { id: visitId } = await params;
-
-  // 1. Authenticate Doctor
   const docAuth = await getOrSyncCurrentDoctor();
-  
+
+  // 1. Doctor Auth Guard
   if (!docAuth.isAuthorized || !docAuth.doctor || !docAuth.user) {
     redirect("/doctor/login");
   }
@@ -70,46 +69,29 @@ export default async function DoctorPatientPage({ params }: DoctorPatientPagePro
       .where(eq(visits.id, visitId));
   }
 
-  // 4. Fetch Attending Doctor
+  // 4. Parallel Batch Fetch: Doctor info, Clinical History, Documents, Red Flags, and Interview Session
+  const [docRow, history, docs, flags, session] = await Promise.all([
+    visit.doctorId ? db.query.doctors.findFirst({ where: eq(doctors.id, visit.doctorId) }) : Promise.resolve(null),
+    db.query.clinicalHistories.findFirst({ where: eq(clinicalHistories.visitId, visitId) }),
+    db.query.medicalDocuments.findMany({ where: eq(medicalDocuments.visitId, visitId) }),
+    db.query.redFlags.findMany({ where: eq(redFlags.visitId, visitId) }),
+    db.query.interviewSessions.findFirst({ where: eq(interviewSessions.visitId, visitId) }),
+  ]);
+
   let attendingDoctorName: string | null = null;
   const isLockedByOtherDoctor =
     visit.status === "IN_CONSULTATION" &&
     !!visit.doctorId &&
     visit.doctorId !== currentDoctor.id;
 
-  if (visit.doctorId) {
-    const docRow = await db.query.doctors.findFirst({
-      where: eq(doctors.id, visit.doctorId),
+  if (docRow) {
+    const docUser = await db.query.users.findFirst({
+      where: eq(users.id, docRow.userId),
     });
-    if (docRow) {
-      const docUser = await db.query.users.findFirst({
-        where: eq(users.id, docRow.userId),
-      });
-      attendingDoctorName = docUser
-        ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
-        : "Doctor";
-    }
+    attendingDoctorName = docUser
+      ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
+      : "Doctor";
   }
-
-  // 5. Fetch Clinical History
-  const history = await db.query.clinicalHistories.findFirst({
-    where: eq(clinicalHistories.visitId, visitId),
-  });
-
-  // 6. Fetch Uploaded Documents Count
-  const docs = await db.query.medicalDocuments.findMany({
-    where: eq(medicalDocuments.visitId, visitId),
-  });
-
-  // 7. Fetch Red Flags
-  const flags = await db.query.redFlags.findMany({
-    where: eq(redFlags.visitId, visitId),
-  });
-
-  // 8. Fetch Interview Session & Transcript Messages
-  const session = await db.query.interviewSessions.findFirst({
-    where: eq(interviewSessions.visitId, visitId),
-  });
 
   let transcriptMessages: {
     id: string;
@@ -128,21 +110,22 @@ export default async function DoctorPatientPage({ params }: DoctorPatientPagePro
 
     transcriptMessages = msgs.map((m) => ({
       id: m.id,
-      sender: m.sender,
+      sender: m.sender as "SYSTEM" | "PATIENT" | "AI",
       textContent: m.textContent,
       timestamp: new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+      extractedPills: m.extractedData ? Object.values(m.extractedData as Record<string, string>) : undefined,
     }));
   }
 
-  // 9. Format Data Payload
-  const patientDataPayload: ClinicalPatientViewData = {
+  // 5. Construct Complete Client Payload
+  const clientData: ClinicalPatientViewData = {
     visitId: visit.id,
     queueNumber: visit.queueNumber || 1,
     department: visit.department,
     priority: visit.priority,
     status: visit.status,
-    createdAt: visit.createdAt.toISOString(),
-    isLockedByOtherDoctor: !!isLockedByOtherDoctor,
+    createdAt: new Date(visit.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+    isLockedByOtherDoctor,
     attendingDoctorName,
     patient: {
       id: patientRow.id,
@@ -161,20 +144,20 @@ export default async function DoctorPatientPage({ params }: DoctorPatientPagePro
           hpi: history.hpi,
           pastMedicalHistory: history.pastMedicalHistory,
           medications: history.medications,
-          allergies: history.medications,
+          allergies: history.allergies,
           ayushData: history.ayushData,
           isConfirmedByPatient: history.isConfirmedByPatient,
-          updatedAt: history.updatedAt.toISOString(),
+          updatedAt: new Date(history.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
         }
       : null,
     redFlags: flags.map((f) => ({
       description: f.description,
       severity: f.severity,
-      category: f.category,
+      category: f.category || undefined,
     })),
     documentsCount: docs.length,
     interviewMessages: transcriptMessages,
   };
 
-  return <ClinicalViewClient data={patientDataPayload} />;
+  return <ClinicalViewClient data={clientData} />;
 }

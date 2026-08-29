@@ -1,32 +1,27 @@
-import { redirect, notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getOrSyncCurrentDoctor } from "@/lib/auth/sync-doctor";
 import { db } from "@/db";
-import {
-  visits,
-  patients,
-  users,
-  medicalDocuments,
-  documentExtractions,
+import { 
+  visits, 
+  patients, 
+  users, 
+  medicalDocuments, 
+  documentExtractions, 
   medicalTimelineEntries,
-  doctors,
+  doctors
 } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import DoctorTimelineClient, {
-  DoctorTimelineViewData,
-  ExtractedDocItem,
-  TimelineEntryItem,
-} from "./timeline-client";
+import { eq, desc, inArray } from "drizzle-orm";
+import DoctorTimelineClient, { DoctorTimelineViewData, ExtractedDocItem, TimelineEntryItem } from "./timeline-client";
 
-interface DoctorTimelinePageProps {
+interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function DoctorTimelinePage({ params }: DoctorTimelinePageProps) {
+export default async function DoctorTimelinePage({ params }: PageProps) {
   const { id: visitId } = await params;
-
-  // 1. Authenticate Doctor
   const docAuth = await getOrSyncCurrentDoctor();
-  
+
+  // 1. Auth Guard
   if (!docAuth.isAuthorized || !docAuth.doctor || !docAuth.user) {
     redirect("/doctor/login");
   }
@@ -60,40 +55,48 @@ export default async function DoctorTimelinePage({ params }: DoctorTimelinePageP
     ? [patientUser.firstName, patientUser.lastName].filter(Boolean).join(" ") || "Patient"
     : "Patient";
 
-  // 3. Check Lock State
+  // 3. Parallel Batch Fetching: Doctor info, Documents, and Timeline entries
+  const [docRow, docs, timeline] = await Promise.all([
+    visit.doctorId ? db.query.doctors.findFirst({ where: eq(doctors.id, visit.doctorId) }) : Promise.resolve(null),
+    db.query.medicalDocuments.findMany({
+      where: eq(medicalDocuments.visitId, visitId),
+      orderBy: [desc(medicalDocuments.uploadedAt)],
+    }),
+    db.query.medicalTimelineEntries.findMany({
+      where: eq(medicalTimelineEntries.visitId, visitId),
+      orderBy: [desc(medicalTimelineEntries.createdAt)],
+    }),
+  ]);
+
   let attendingDoctorName: string | null = null;
   const isLockedByOtherDoctor =
     visit.status === "IN_CONSULTATION" &&
     !!visit.doctorId &&
     visit.doctorId !== currentDoctor.id;
 
-  if (visit.doctorId) {
-    const docRow = await db.query.doctors.findFirst({
-      where: eq(doctors.id, visit.doctorId),
+  if (docRow) {
+    const docUser = await db.query.users.findFirst({
+      where: eq(users.id, docRow.userId),
     });
-    if (docRow) {
-      const docUser = await db.query.users.findFirst({
-        where: eq(users.id, docRow.userId),
-      });
-      attendingDoctorName = docUser
-        ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
-        : "Doctor";
-    }
+    attendingDoctorName = docUser
+      ? [docUser.firstName, docUser.lastName].filter(Boolean).join(" ") || "Doctor"
+      : "Doctor";
   }
 
-  // 4. Fetch Uploaded Medical Documents & Extractions
-  const docs = await db.query.medicalDocuments.findMany({
-    where: eq(medicalDocuments.visitId, visitId),
-    orderBy: [desc(medicalDocuments.uploadedAt)],
-  });
+  // 4. Batch Fetch Extractions in ONE Query
+  const docIds = docs.map((d) => d.id);
+  const extractions =
+    docIds.length > 0
+      ? await db.query.documentExtractions.findMany({
+          where: inArray(documentExtractions.documentId, docIds),
+        })
+      : [];
 
-  const formattedDocs: ExtractedDocItem[] = [];
-  for (const doc of docs) {
-    const ext = await db.query.documentExtractions.findFirst({
-      where: eq(documentExtractions.documentId, doc.id),
-    });
+  const extMap = new Map(extractions.map((e) => [e.documentId, e]));
 
-    formattedDocs.push({
+  const formattedDocs: ExtractedDocItem[] = docs.map((doc) => {
+    const ext = extMap.get(doc.id);
+    return {
       id: doc.id,
       fileName: doc.fileName,
       fileUrl: doc.fileUrl,
@@ -113,46 +116,38 @@ export default async function DoctorTimelinePage({ params }: DoctorTimelinePageP
               ? (ext.labResults as Array<{ testName: string; value: string; unit?: string; referenceRange?: string; isAbnormal?: boolean; interpretation?: string }>)
               : undefined,
           }
-        : null,
-    });
-  }
-
-  // 5. Fetch Medical Timeline Entries
-  const rawTimeline = await db.query.medicalTimelineEntries.findMany({
-    where: eq(medicalTimelineEntries.patientId, patientRow.id),
-    orderBy: [desc(medicalTimelineEntries.createdAt)],
+        : undefined,
+    };
   });
 
-  const formattedTimeline: TimelineEntryItem[] = rawTimeline.map((item) => ({
-    id: item.id,
-    date: item.date || new Date(item.createdAt).toLocaleDateString(),
-    title: item.title,
-    category: item.category as TimelineEntryItem["category"],
-    details: item.details as Record<string, unknown> | null,
-    isAbnormal: item.isAbnormal,
-    documentId: item.documentId,
-    sourceDocName: null,
+  const formattedTimeline: TimelineEntryItem[] = timeline.map((t) => ({
+    id: t.id,
+    category: t.category,
+    date: t.date || t.createdAt.toLocaleDateString(),
+    title: t.title,
+    details: t.details ? (t.details as Record<string, unknown>) : null,
+    isAbnormal: t.isAbnormal,
+    documentId: t.documentId || null,
   }));
 
-  // 6. Assemble Payload
-  const timelineViewData: DoctorTimelineViewData = {
+  const viewData: DoctorTimelineViewData = {
     visitId: visit.id,
     queueNumber: visit.queueNumber || 1,
     department: visit.department,
     priority: visit.priority,
     status: visit.status,
-    isLockedByOtherDoctor: !!isLockedByOtherDoctor,
+    isLockedByOtherDoctor,
     attendingDoctorName,
     patient: {
       id: patientRow.id,
       name: patientName,
-      uhid: patientRow.uhid,
       age: patientRow.age,
       gender: patientRow.gender,
+      uhid: patientRow.uhid,
     },
     documents: formattedDocs,
     timelineEntries: formattedTimeline,
   };
 
-  return <DoctorTimelineClient data={timelineViewData} />;
+  return <DoctorTimelineClient data={viewData} />;
 }
