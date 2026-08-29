@@ -825,6 +825,7 @@ export const PATIENT_TRANSLATIONS: Record<SupportedLanguage, TranslationDictiona
   },
 };
 
-export function getPatientTranslations(lang: SupportedLanguage = "en"): TranslationDictionary {
-  return PATIENT_TRANSLATIONS[lang] || PATIENT_TRANSLATIONS.en;
+export function getPatientTranslations(lang?: string | null): TranslationDictionary {
+  const normalized = (lang || "en").toLowerCase() as SupportedLanguage;
+  return PATIENT_TRANSLATIONS[normalized] || PATIENT_TRANSLATIONS.en;
 }
