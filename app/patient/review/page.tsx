@@ -25,6 +25,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import ConfirmReviewButton from "./confirm-button";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 interface ReviewPageProps {
   searchParams: Promise<{ visit?: string; session?: string }>;
@@ -82,6 +83,9 @@ export default async function PatientReviewPage({ searchParams }: ReviewPageProp
   if (!patientData) {
     redirect("/patient/login");
   }
+
+  const lang = patientData.patient.languagePreference || "en";
+  const t = getPatientTranslations(lang);
 
   // ── Fetch all data in parallel ──
   const [visit, history, flags, session] = await Promise.all([
@@ -170,14 +174,13 @@ export default async function PatientReviewPage({ searchParams }: ReviewPageProp
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-0.5 text-xs font-semibold text-primary">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Step 3 of 4 · Review Your Clinical History</span>
+            <span>PreConsult &bull; {t.reviewTitle}</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Here's what was captured
+            {t.reviewTitle}
           </h1>
           <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-            Please read through the summary below. If everything looks correct, confirm to proceed.
-            If something is missing or wrong, use the link below to go back and correct it.
+            {t.reviewSubtitle}
           </p>
         </div>
 
@@ -209,28 +212,28 @@ export default async function PatientReviewPage({ searchParams }: ReviewPageProp
         {hasSections ? (
           <div className="space-y-4">
             <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-              AI-Structured Clinical Summary
+              {t.reviewTitle}
             </h2>
 
             <SectionCard
               icon={<HeartPulse className="w-4 h-4" />}
-              title="Chief Complaint"
+              title={t.chiefComplaint}
               content={chiefComplaint}
               accent
             />
             <SectionCard
               icon={<ClipboardList className="w-4 h-4" />}
-              title="History of Present Illness"
+              title={t.symptomsDetails}
               content={hpi}
             />
             <SectionCard
               icon={<AlertTriangle className="w-4 h-4" />}
-              title="Past Medical History"
+              title={t.pastHistory}
               content={pastHistory}
             />
             <SectionCard
               icon={<Pill className="w-4 h-4" />}
-              title="Medications & Allergies"
+              title={t.currentMedications}
               content={medications}
             />
 

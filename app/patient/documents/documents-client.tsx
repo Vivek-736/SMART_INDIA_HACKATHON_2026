@@ -26,6 +26,7 @@ import {
   recordUploadedDocumentAction,
   deleteUploadedDocumentAction,
 } from "./actions";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 interface DocumentItem {
   id: string;
@@ -43,6 +44,7 @@ interface DocumentsClientProps {
   department: string;
   queueNumber?: number | null;
   initialDocuments: DocumentItem[];
+  language?: string;
 }
 
 export default function DocumentsClient({
@@ -51,8 +53,10 @@ export default function DocumentsClient({
   department,
   queueNumber,
   initialDocuments,
+  language = "en",
 }: DocumentsClientProps) {
   const router = useRouter();
+  const t = getPatientTranslations(language);
   
   const [documents, setDocuments] = useState<DocumentItem[]>(initialDocuments);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -133,13 +137,13 @@ export default function DocumentsClient({
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-accent px-3 py-0.5 text-xs font-semibold text-primary">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Step 4 of 4 · Prior Medical Documents (Optional)</span>
+            <span>PreConsult Medical Records</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            Upload Previous Prescriptions & Reports
+            {t.uploadTitle}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
-            You can upload multiple files (photos or PDFs). You can also upload one file now and add more right after.
+            {t.uploadSubtitle}
           </p>
         </div>
 
@@ -409,7 +413,7 @@ export default function DocumentsClient({
             disabled={isNavigating || isUploading}
             className="text-xs font-semibold text-muted-foreground hover:text-foreground underline underline-offset-4 cursor-pointer transition-colors disabled:opacity-50"
           >
-            I have no more records / Skip this step &rarr;
+            {t.skipForNow} &rarr;
           </button>
 
           <Button
@@ -421,21 +425,16 @@ export default function DocumentsClient({
             {isNavigating ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Completing Submission...</span>
+                <span>{t.loading}</span>
               </>
             ) : isUploading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Uploading Files...</span>
-              </>
-            ) : documents.length > 0 ? (
-              <>
-                <span>Save {documents.length} Records & Finish</span>
-                <ArrowRight className="w-5 h-5" />
+                <span>{t.uploadingText}</span>
               </>
             ) : (
               <>
-                <span>Complete Intake Submission</span>
+                <span>{t.continue}</span>
                 <ArrowRight className="w-5 h-5" />
               </>
             )}

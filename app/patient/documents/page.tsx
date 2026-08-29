@@ -53,6 +53,7 @@ export default async function PatientDocumentsPage({ searchParams }: DocumentsPa
       department={targetVisit.department}
       queueNumber={targetVisit.queueNumber}
       initialDocuments={existingDocs}
+      language={patient.languagePreference || "en"}
     />
   );
 }

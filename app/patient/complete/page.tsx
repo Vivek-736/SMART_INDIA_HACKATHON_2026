@@ -14,6 +14,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 interface CompletePageProps {
   searchParams: Promise<{ visit?: string; session?: string }>;
@@ -28,6 +29,8 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
   }
 
   const { user, patient } = patientData;
+  const lang = patient.languagePreference || "en";
+  const t = getPatientTranslations(lang);
 
   // 1. Fetch active visit
   let visit = null;
@@ -71,7 +74,7 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
           <span className="text-base font-bold tracking-tight text-foreground flex items-center gap-1.5">
             PreConsult
             <span className="inline-flex items-center rounded-md bg-emerald-100 px-1.5 py-0.2 text-[10.5px] font-semibold text-emerald-700">
-              Intake Complete
+              {t.intakeComplete}
             </span>
           </span>
         </Link>
@@ -88,13 +91,13 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
         <div className="space-y-2">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-50 px-3 py-0.5 text-xs font-semibold text-emerald-700">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Registration & History Confirmed</span>
+            <span>PreConsult Intake</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground">
-            You&apos;re All Set for Consultation!
+            {t.intakeSubmittedTitle}
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Your clinical intake and uploaded records have been organized into a structured briefing for the attending physician.
+            {t.intakeSubmittedSubtitle}
           </p>
         </div>
 
@@ -183,7 +186,7 @@ export default async function PatientCompletePage({ searchParams }: CompletePage
               className="w-full sm:w-auto px-8 py-6 rounded-xl font-bold text-base cursor-pointer shadow-md bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span>Go to Patient Dashboard</span>
+              <span>{t.viewDashboard}</span>
               <ArrowRight className="w-5 h-5" />
             </Button>
           </Link>
