@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { 
-  User, 
-  Stethoscope, 
-  Building2, 
-  ArrowRight, 
-  Sparkles, 
-  ShieldCheck 
+import {
+  User,
+  Stethoscope,
+  Building2,
+  ArrowRight,
+  Sparkles,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -91,7 +91,7 @@ export default function Home() {
             <span>High-Throughput Clinical Intake Platform</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
-            Converting messy patient stories into{" "}
+            Converting precarious patient stories into{" "}
             <span className="text-primary underline decoration-primary/30 underline-offset-4">
               coherent clinical cases
             </span>
@@ -108,20 +108,18 @@ export default function Home() {
             return (
               <div
                 key={portal.title}
-                className={`relative group rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 border ${
-                  portal.highlight
+                className={`relative group rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-200 border ${portal.highlight
                     ? "bg-card border-primary shadow-md hover:shadow-lg hover:border-primary ring-1 ring-primary/20"
                     : "bg-card border-border hover:border-primary/50 shadow-xs hover:shadow-md"
-                }`}
+                  }`}
               >
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${
-                        portal.highlight
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${portal.highlight
                           ? "bg-primary text-primary-foreground"
                           : "bg-accent text-primary group-hover:bg-primary group-hover:text-primary-foreground"
-                      }`}
+                        }`}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
@@ -140,11 +138,10 @@ export default function Home() {
                     <Button
                       variant={portal.buttonVariant}
                       size="sm"
-                      className={`w-full justify-between font-medium group/btn text-xs sm:text-sm h-9 ${
-                        portal.highlight
+                      className={`w-full justify-between font-medium group/btn text-xs sm:text-sm h-9 ${portal.highlight
                           ? "bg-primary text-primary-foreground hover:bg-primary/90"
                           : "border-border hover:border-primary hover:text-primary"
-                      }`}
+                        }`}
                     >
                       <span>{portal.cta}</span>
                       <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1" />

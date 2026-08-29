@@ -14,7 +14,7 @@ const roboto_Condensed = Roboto_Condensed({
 
 export const metadata: Metadata = {
   title: "PreConsult - Mess to Story",
-  description: "Turning a messy patient story into a coherent clinical case.",
+  description: "Turning a precarious patient story into a coherent clinical case.",
   icons: {
     icon: "/icon.png"
   }
