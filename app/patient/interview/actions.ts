@@ -6,14 +6,16 @@ import {
   interviewSessions, 
   clinicalHistories, 
   redFlags, 
-  visits 
+  visits,
+  patients
 } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { extractClinicalEntities } from "@/lib/ai/gemini-extract";
 import { InterviewSection } from "@/lib/clinical/interview-engine";
 import { revalidatePath } from "next/cache";
 import { generateAdaptiveQuestion } from "@/lib/ai/puter-gemini";
+import { generatePhysicianBriefing } from "@/lib/ai/summary-aggregator";
 
 export interface RecordTurnPayload {
   sessionId: string;
@@ -114,7 +116,7 @@ export async function finalizeInterviewSessionAction(sessionId: string, visitId:
     throw new Error("Unauthorized");
   }
 
-  const { patient } = patientData;
+  const { patient, user } = patientData;
 
   // 1. Mark session as completed
   await db
@@ -125,46 +127,95 @@ export async function finalizeInterviewSessionAction(sessionId: string, visitId:
     })
     .where(eq(interviewSessions.id, sessionId));
 
-  // 2. Visit stays at INTAKE_IN_PROGRESS — the review page confirm action
-  //    sets READY_FOR_DOCTOR after the patient verifies their summary.
-  // 3. Upsert Clinical History Record
+  // 2. Fetch all messages to construct full QA pairs for synthesis
+  const messages = await db.query.interviewMessages.findMany({
+    where: eq(interviewMessages.sessionId, sessionId),
+    orderBy: [asc(interviewMessages.createdAt)],
+  });
+
+  const qaPairs: { question: string; answer: string; section?: string }[] = [];
+  for (let i = 0; i < messages.length - 1; i++) {
+    if (messages[i].sender === "SYSTEM" && messages[i + 1].sender === "PATIENT") {
+      qaPairs.push({
+        question: messages[i].textContent,
+        answer: messages[i + 1].textContent,
+      });
+      i++;
+    }
+  }
+
+  const targetVisit = await db.query.visits.findFirst({
+    where: eq(visits.id, visitId),
+  });
+
+  const existingFlags = await db.query.redFlags.findMany({
+    where: eq(redFlags.visitId, visitId),
+  });
+
+  const patientFullName = [user.firstName, user.lastName].filter(Boolean).join(" ") || "Patient";
+
+  // 3. Generate high-grade Physician Briefing using Gemini & Clinical Synthesizer
+  const briefing = await generatePhysicianBriefing({
+    patientName: patientFullName,
+    patientAge: patient.age,
+    patientGender: patient.gender,
+    department: targetVisit?.department || "General Medicine",
+    interviewQAPairs: qaPairs,
+    clinicalHistory: {
+      chiefComplaint: summary.chiefComplaint,
+      hpi: summary.hpi,
+      pastMedicalHistory: summary.pastHistory,
+      medications: summary.medicationsAllergies,
+      ayushData: summary.ayushData,
+    },
+    documentExtractions: [],
+    existingRedFlags: existingFlags.map((f) => ({
+      description: f.description,
+      severity: f.severity,
+    })),
+  });
+
+  // 4. Upsert Clinical History Record with rich synthesis
   const existingHistory = await db.query.clinicalHistories.findFirst({
     where: eq(clinicalHistories.visitId, visitId),
   });
 
-  const structuredSummaryText = `Chief Complaint: ${JSON.stringify(summary.chiefComplaint || "")}. HPI: ${JSON.stringify(summary.hpi || "")}. Past History: ${JSON.stringify(summary.pastHistory || "")}. Medications & Allergies: ${JSON.stringify(summary.medicationsAllergies || "")}.`;
+  const historyValues = {
+    visitId,
+    patientId: patient.id,
+    chiefComplaint: briefing.chiefComplaintSummary as unknown as Record<string, unknown>,
+    hpi: briefing.hpiEvolution as unknown as Record<string, unknown>,
+    pastMedicalHistory: briefing.pastMedicalHistorySummary as unknown as Record<string, unknown>,
+    medications: briefing.activeMedications as unknown as Record<string, unknown>,
+    ayushData: (summary.ayushData as Record<string, unknown>) || null,
+    summaryText: briefing.synthesizedSummary,
+    updatedAt: new Date(),
+  };
 
   if (existingHistory) {
     await db
       .update(clinicalHistories)
-      .set({
-        chiefComplaint: summary.chiefComplaint as Record<string, unknown>,
-        hpi: summary.hpi as Record<string, unknown>,
-        pastMedicalHistory: summary.pastHistory as Record<string, unknown>,
-        medications: summary.medicationsAllergies as Record<string, unknown>,
-        ayushData: (summary.ayushData as Record<string, unknown>) || null,
-        summaryText: structuredSummaryText,
-        updatedAt: new Date(),
-      })
+      .set(historyValues)
       .where(eq(clinicalHistories.id, existingHistory.id));
   } else {
-    await db.insert(clinicalHistories).values({
-      visitId,
-      patientId: patient.id,
-      chiefComplaint: summary.chiefComplaint as Record<string, unknown>,
-      hpi: summary.hpi as Record<string, unknown>,
-      pastMedicalHistory: summary.pastHistory as Record<string, unknown>,
-      medications: summary.medicationsAllergies as Record<string, unknown>,
-      ayushData: (summary.ayushData as Record<string, unknown>) || null,
-      summaryText: structuredSummaryText,
-    });
+    await db.insert(clinicalHistories).values(historyValues);
+  }
+
+  // 5. Update visit priority if triage is urgent
+  if (briefing.triagePriority === "URGENT") {
+    await db
+      .update(visits)
+      .set({ priority: "URGENT", updatedAt: new Date() })
+      .where(eq(visits.id, visitId));
   }
 
   revalidatePath("/patient/dashboard");
+  revalidatePath("/patient/review");
 
   return {
     success: true,
     visitId,
     sessionId,
+    briefing,
   };
 }

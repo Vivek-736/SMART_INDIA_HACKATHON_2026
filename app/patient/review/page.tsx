@@ -300,12 +300,11 @@ export default async function PatientReviewPage({ searchParams }: ReviewPageProp
             <div className="flex items-start gap-2 text-xs text-muted-foreground max-w-md">
               <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
               <span>
-                By confirming, you acknowledge that the above information represents your reported
-                history. Your doctor will review and verify all clinical decisions.
+                {t.patientConfirmationNote}
               </span>
             </div>
 
-            <ConfirmReviewButton visitId={visitId} sessionId={sessionId} />
+            <ConfirmReviewButton visitId={visitId} sessionId={sessionId} language={lang} />
           </div>
         </div>
       </main>

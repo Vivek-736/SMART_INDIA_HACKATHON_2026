@@ -5,10 +5,12 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, Loader2, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { confirmReviewAction } from "./actions";
+import { getPatientTranslations } from "@/lib/i18n/patient-translations";
 
 interface ConfirmReviewButtonProps {
   visitId: string;
   sessionId: string;
+  language?: string;
 }
 
 /**
@@ -17,8 +19,13 @@ interface ConfirmReviewButtonProps {
  * Client component — owns the transition state for the confirm server action.
  * On success redirects to /patient/documents; on error shows inline message.
  */
-export default function ConfirmReviewButton({ visitId, sessionId }: ConfirmReviewButtonProps) {
+export default function ConfirmReviewButton({
+  visitId,
+  sessionId,
+  language = "en",
+}: ConfirmReviewButtonProps) {
   const router = useRouter();
+  const t = getPatientTranslations(language);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -45,7 +52,7 @@ export default function ConfirmReviewButton({ visitId, sessionId }: ConfirmRevie
           className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 cursor-pointer"
         >
           <RotateCcw className="w-3.5 h-3.5" />
-          Something looks wrong
+          {t.somethingLooksWrong}
         </a>
         <Button
           onClick={handleConfirm}
@@ -53,9 +60,15 @@ export default function ConfirmReviewButton({ visitId, sessionId }: ConfirmRevie
           className="px-8 py-6 rounded-xl font-bold text-base cursor-pointer shadow-md bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         >
           {isPending ? (
-            <><Loader2 className="w-5 h-5 animate-spin" /><span>Confirming…</span></>
+            <>
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span>{t.loading}</span>
+            </>
           ) : (
-            <><span>Looks Correct — Proceed</span><ArrowRight className="w-5 h-5" /></>
+            <>
+              <span>{t.looksCorrectProceed}</span>
+              <ArrowRight className="w-5 h-5" />
+            </>
           )}
         </Button>
       </div>
