@@ -318,22 +318,26 @@ export default function PatientInterviewPage() {
 
   const rawSessionId = searchParams.get("session") || "";
   const rawVisitId = searchParams.get("visit") || "";
-  const initialLang = (searchParams.get("lang") || "en") as "en" | "hi" | "te" | "ta" | "kn";
+  const rawLangParam = searchParams.get("lang") as "en" | "hi" | "te" | "ta" | "kn" | null;
   const department = searchParams.get("dept") || "General Medicine";
   const isAyushMode = department.includes("AYUSH") || department.includes("Ayurveda");
 
-  const [interviewLang, setInterviewLang] = useState<"en" | "hi" | "te" | "ta" | "kn">(initialLang);
+  const [interviewLang, setInterviewLang] = useState<"en" | "hi" | "te" | "ta" | "kn">(
+    rawLangParam || "en"
+  );
   const [activeSessionId, setActiveSessionId] = useState(rawSessionId);
   const [activeVisitId, setActiveVisitId] = useState(rawVisitId);
 
-  // Lock language to patient's global preference on mount
+  // If no lang query param was provided in the URL, retrieve the patient's database preference once
   useEffect(() => {
-    getPatientInterviewConfigAction().then((config) => {
-      if (config?.language && config.language !== interviewLang) {
-        setInterviewLang(config.language);
-      }
-    });
-  }, []);
+    if (!rawLangParam) {
+      getPatientInterviewConfigAction().then((config) => {
+        if (config?.language) {
+          setInterviewLang(config.language);
+        }
+      });
+    }
+  }, [rawLangParam]);
 
   const [stages, setStages] = useState<QuestionData[]>(() => getInterviewStages(isAyushMode));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -541,10 +545,12 @@ export default function PatientInterviewPage() {
             question: {
               ...cloned[nextIdx].question,
               [interviewLang]: adaptedQ,
+              en: interviewLang === "en" ? adaptedQ : (cloned[nextIdx].question.en || adaptedQ),
             },
             suggestions: {
               ...cloned[nextIdx].suggestions,
               [interviewLang]: adaptedOptions.length > 0 ? adaptedOptions : cloned[nextIdx].suggestions[interviewLang],
+              en: interviewLang === "en" ? adaptedOptions : (cloned[nextIdx].suggestions.en || adaptedOptions),
             },
           };
           return cloned;
