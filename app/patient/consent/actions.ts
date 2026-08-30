@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/db";
-import { visits, consents, interviewSessions } from "@/db/schema";
+import { visits, consents, interviewSessions, patients } from "@/db/schema";
 import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { revalidatePath } from "next/cache";
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export interface CreateConsentPayload {
   language: "en" | "hi" | "te" | "ta" | "kn";
@@ -21,14 +21,23 @@ export async function submitConsentAndCreateSessionAction(payload: CreateConsent
 
   const { patient } = patientData;
 
-  // 1. Generate Sequential OPD Queue Number (1, 2, 3, 4...) in database order
+  // 1. Immediately synchronize patient's language preference in database
+  await db
+    .update(patients)
+    .set({
+      languagePreference: payload.language,
+      updatedAt: new Date(),
+    })
+    .where(eq(patients.id, patient.id));
+
+  // 2. Generate Sequential OPD Queue Number (1, 2, 3, 4...) in database order
   const [maxQueueRow] = await db
     .select({ maxQueue: sql<number>`COALESCE(MAX(${visits.queueNumber}), 0)` })
     .from(visits);
 
   const queueNumber = Number(maxQueueRow?.maxQueue || 0) + 1;
 
-  // 2. Create Active Visit
+  // 3. Create Active Visit
   const [newVisit] = await db
     .insert(visits)
     .values({
@@ -41,7 +50,7 @@ export async function submitConsentAndCreateSessionAction(payload: CreateConsent
     })
     .returning();
 
-  // 3. Record Informed Consent
+  // 4. Record Informed Consent
   await db.insert(consents).values({
     visitId: newVisit.id,
     patientId: patient.id,
@@ -49,7 +58,7 @@ export async function submitConsentAndCreateSessionAction(payload: CreateConsent
     isGranted: true,
   });
 
-  // 4. Initialize Interview Session
+  // 5. Initialize Interview Session with selected language
   const [newSession] = await db
     .insert(interviewSessions)
     .values({
@@ -62,6 +71,7 @@ export async function submitConsentAndCreateSessionAction(payload: CreateConsent
     .returning();
 
   revalidatePath("/patient/dashboard");
+  revalidatePath("/patient/interview");
 
   return {
     success: true,
