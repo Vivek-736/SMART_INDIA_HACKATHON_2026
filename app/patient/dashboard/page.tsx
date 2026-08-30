@@ -4,6 +4,7 @@ import { getOrSyncCurrentPatient } from "@/lib/auth/sync-user";
 import { db } from "@/db";
 import {
   visits,
+  interviewSessions,
   clinicalHistories,
   doctorReviews,
   medicalDocuments,
@@ -51,6 +52,15 @@ export default async function PatientDashboardPage() {
   });
 
   const latestVisit = patientVisits[0] || null;
+
+  // 1b. Fetch active interview session if in progress
+  let latestSession: typeof interviewSessions.$inferSelect | null = null;
+  if (latestVisit) {
+    latestSession = (await db.query.interviewSessions.findFirst({
+      where: eq(interviewSessions.visitId, latestVisit.id),
+      orderBy: [desc(interviewSessions.createdAt)],
+    })) || null;
+  }
 
   // 2. Fetch Doctor Review if latest visit or any prior visit is completed
   let completedDoctorReview: typeof doctorReviews.$inferSelect | null = null;
@@ -194,7 +204,7 @@ export default async function PatientDashboardPage() {
           <PatientLanguageSwitcher currentLanguage={lang} />
 
           {isIntakeIncomplete ? (
-            <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`}>
+            <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&session=${latestSession?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`}>
               <Button className="rounded-xl font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs gap-2 cursor-pointer text-xs sm:text-sm py-5 px-5">
                 <Sparkles className="w-4 h-4" />
                 <span>{t.resumeIntake}</span>
@@ -374,7 +384,7 @@ export default async function PatientDashboardPage() {
                       <span className="text-amber-800/90">{t.completeIntakeDesc}</span>
                     </div>
                   </div>
-                  <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`} className="shrink-0">
+                  <Link href={`/patient/interview?lang=${lang}&visit=${latestVisit?.id || ""}&session=${latestSession?.id || ""}&dept=${encodeURIComponent(latestVisit?.department || "General Medicine")}`} className="shrink-0">
                     <Button size="sm" className="rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs cursor-pointer shadow-2xs">
                       {t.continueIntake}
                     </Button>

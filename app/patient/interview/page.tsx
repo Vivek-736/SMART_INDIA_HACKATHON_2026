@@ -25,7 +25,8 @@ import { Button } from "@/components/ui/button";
 import { getInterviewStages, QuestionData } from "@/lib/clinical/interview-engine";
 import { 
   recordInterviewTurnAction, 
-  finalizeInterviewSessionAction 
+  finalizeInterviewSessionAction,
+  getPatientInterviewConfigAction 
 } from "./actions";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -315,11 +316,24 @@ export default function PatientInterviewPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const sessionId = searchParams.get("session") || "session-demo";
-  const visitId = searchParams.get("visit") || "visit-demo";
-  const language = (searchParams.get("lang") || "en") as "en" | "hi" | "te" | "ta" | "kn";
+  const rawSessionId = searchParams.get("session") || "";
+  const rawVisitId = searchParams.get("visit") || "";
+  const initialLang = (searchParams.get("lang") || "en") as "en" | "hi" | "te" | "ta" | "kn";
   const department = searchParams.get("dept") || "General Medicine";
   const isAyushMode = department.includes("AYUSH") || department.includes("Ayurveda");
+
+  const [interviewLang, setInterviewLang] = useState<"en" | "hi" | "te" | "ta" | "kn">(initialLang);
+  const [activeSessionId, setActiveSessionId] = useState(rawSessionId);
+  const [activeVisitId, setActiveVisitId] = useState(rawVisitId);
+
+  // Lock language to patient's global preference on mount
+  useEffect(() => {
+    getPatientInterviewConfigAction().then((config) => {
+      if (config?.language && config.language !== interviewLang) {
+        setInterviewLang(config.language);
+      }
+    });
+  }, []);
 
   const [stages, setStages] = useState<QuestionData[]>(() => getInterviewStages(isAyushMode));
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -346,9 +360,9 @@ export default function PatientInterviewPage() {
 
   const currentStage = stages[currentStepIndex] || stages[stages.length - 1];
   const isInterviewComplete = currentStepIndex >= stages.length;
-  const currentQuestionText = currentStage?.question[language] || currentStage?.question.en || "";
+  const currentQuestionText = currentStage?.question[interviewLang] || currentStage?.question.en || "";
   const currentChips = currentStage?.suggestions
-    ? (currentStage.suggestions[language] || currentStage.suggestions.en || [])
+    ? (currentStage.suggestions[interviewLang] || currentStage.suggestions.en || [])
     : [];
 
   // Auto-scroll chat
@@ -363,7 +377,7 @@ export default function PatientInterviewPage() {
   useEffect(() => {
     if (isInterviewComplete || !currentStage || sessionMode === "pending") return;
 
-    const questionText = currentStage.question[language] || currentStage.question.en;
+    const questionText = currentStage.question[interviewLang] || currentStage.question.en;
 
     setMessages((prev) => {
       if (prev.length > 0 && prev[prev.length - 1].sender === "SYSTEM") return prev;
@@ -382,7 +396,7 @@ export default function PatientInterviewPage() {
       speakText(questionText);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentStepIndex, autoPlayAudio, language, isInterviewComplete, sessionMode]);
+  }, [currentStepIndex, autoPlayAudio, interviewLang, isInterviewComplete, sessionMode]);
 
   // ─── TTS helpers ────────────────────────────────────────────────────────────
 
@@ -433,7 +447,7 @@ export default function PatientInterviewPage() {
 
   /** Plays a single piece of text aloud. */
   const speakText = (text: string) => {
-    const locale = localeMap[language] || "en-IN";
+    const locale = localeMap[interviewLang] || "en-IN";
     playAudio(text, locale).catch(() => {});
   };
 
@@ -450,9 +464,9 @@ export default function PatientInterviewPage() {
   const handleSessionModeChosen = (mode: "speak" | "tap") => {
     setSessionMode(mode);
     // Now kick off the first question TTS
-    const questionText = currentStage?.question[language] || currentStage?.question.en || "";
+    const questionText = currentStage?.question[interviewLang] || currentStage?.question.en || "";
     if (autoPlayAudio && questionText) {
-      const locale = localeMap[language] || "en-IN";
+      const locale = localeMap[interviewLang] || "en-IN";
       playAudio(questionText, locale).catch(() => {});
     }
   };
@@ -474,7 +488,7 @@ export default function PatientInterviewPage() {
     setMessages((prev) => [...prev, userMessage]);
 
     const nextStage = stages[currentStepIndex + 1];
-    const nextBaseQuestion = nextStage?.question[language] || nextStage?.question.en;
+    const nextBaseQuestion = nextStage?.question[interviewLang] || nextStage?.question.en;
     const previousAnswersList = Object.entries(intakeSummary).map(([k, v]) => ({
       section: k,
       answer: String(v),
@@ -482,16 +496,19 @@ export default function PatientInterviewPage() {
 
     try {
       const result = await recordInterviewTurnAction({
-        sessionId,
-        visitId,
+        sessionId: activeSessionId,
+        visitId: activeVisitId,
         section: currentStage.section,
         doctorQuestion: currentQuestionText,
         patientAnswer: trimmed,
-        language,
+        language: interviewLang,
         nextSection: nextStage?.section,
         nextBaseQuestion,
         previousAnswers: previousAnswersList,
       });
+
+      if (result?.sessionId) setActiveSessionId(result.sessionId);
+      if (result?.visitId) setActiveVisitId(result.visitId);
 
       if (result?.extraction) {
         const { redFlagDetected, summarySnippet } = result.extraction;
@@ -523,11 +540,11 @@ export default function PatientInterviewPage() {
             ...cloned[nextIdx],
             question: {
               ...cloned[nextIdx].question,
-              [language]: adaptedQ,
+              [interviewLang]: adaptedQ,
             },
             suggestions: {
               ...cloned[nextIdx].suggestions,
-              [language]: adaptedOptions.length > 0 ? adaptedOptions : cloned[nextIdx].suggestions[language],
+              [interviewLang]: adaptedOptions.length > 0 ? adaptedOptions : cloned[nextIdx].suggestions[interviewLang],
             },
           };
           return cloned;
@@ -565,11 +582,13 @@ export default function PatientInterviewPage() {
             }
           : null;
 
-        await finalizeInterviewSessionAction(sessionId, visitId, {
+        const res = await finalizeInterviewSessionAction(activeSessionId, activeVisitId, {
           ...intakeSummary,
           ayushData: finalAyushData,
         });
-        router.push(`/patient/review?session=${sessionId}&visit=${visitId}`);
+        const finalSessionId = res.sessionId || activeSessionId;
+        const finalVisitId = res.visitId || activeVisitId;
+        router.push(`/patient/review?session=${finalSessionId}&visit=${finalVisitId}`);
       } catch (err) {
         console.error("Finalization error:", err);
       }
@@ -594,7 +613,7 @@ export default function PatientInterviewPage() {
             </span>
           </div>
         </header>
-        <SessionModeSelect language={language} onChoose={handleSessionModeChosen} />
+        <SessionModeSelect language={interviewLang} onChoose={handleSessionModeChosen} />
         <footer className="text-center text-[11px] text-muted-foreground py-2 border-t border-border/40">
           <span>PreConsult Assistive Intake Engine &bull; All diagnoses finalized by attending doctor</span>
         </footer>
@@ -733,7 +752,7 @@ export default function PatientInterviewPage() {
             {/* Voice Input Panel */}
             {sessionMode === "speak" && (
               <VoiceInputPanel
-                language={language}
+                language={interviewLang}
                 isProcessingTurn={isProcessingTurn}
                 onTranscribed={(text) => handleAnswerSubmit(text)}
                 onSwitchMode={() => setSessionMode("tap")}
