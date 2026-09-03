@@ -157,6 +157,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
+## 👥 Meet the Team
+
+| Member | Role & Responsibilities |
+|---|---|
+| **Ramcharan** | Team Lead & Developer |
+| **Manoj** | Developer & Brainstormer |
+| **Yashasvini** | Designer & Presenter |
+| **Tishya** | Researcher |
+| **Varshitha** | Researcher & Tester |
+| **Revanth** | Video Editor |
+
+---
+
 ## 🏆 Smart India Hackathon 2026
 
 <div align="center">
