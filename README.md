@@ -159,14 +159,44 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 👥 Meet the Team
 
-| Member | Role & Responsibilities |
-|---|---|
-| **Ramcharan** | Team Lead & Developer |
-| **Manoj** | Developer & Brainstormer |
-| **Yashasvini** | Designer & Presenter |
-| **Tishya** | Researcher |
-| **Varshitha** | Researcher & Tester |
-| **Revanth** | Video Editor |
+<div align="center">
+
+<table width="100%">
+  <thead>
+    <tr>
+      <th align="center" width="40%">Member</th>
+      <th align="center" width="60%">Role &amp; Responsibilities</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><strong>Ramcharan</strong></td>
+      <td align="center">Team Lead &amp; Developer</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Manoj</strong></td>
+      <td align="center">Developer &amp; Brainstormer</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Yashasvini</strong></td>
+      <td align="center">Designer &amp; Presenter</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Tishya</strong></td>
+      <td align="center">Researcher</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Varshitha</strong></td>
+      <td align="center">Researcher &amp; Tester</td>
+    </tr>
+    <tr>
+      <td align="center"><strong>Revanth</strong></td>
+      <td align="center">Video Editor</td>
+    </tr>
+  </tbody>
+</table>
+
+</div>
 
 ---
 
